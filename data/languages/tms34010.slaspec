@@ -38,6 +38,11 @@ define register offset=0x80 size=4 [ PC ];
 # STX keeps the reserved bits, so GETST returns what PUTST wrote (as MAME does).
 define register offset=0x90 size=1 [ N C Z V PBX IE FE0 FE1 FS0 FS1 ];
 define register offset=0xa0 size=4 [ STX MMP ];
+@ifdef TMS34020
+# TMS34020: VCOLOR stands for the colour registers of the external VRAMs (loaded by VLCOL, used by
+# the VRAM block-write instructions VFILL and VBLT).
+define register offset=0xb0 size=4 [ VCOLOR ];
+@endif
 
 # Graphics instructions that update registers while they run (PIXBLT/FILL/LINE) keep their
 # loop state in the registers themselves; no other hidden state is needed.
@@ -49,5 +54,10 @@ define register offset=0xa0 size=4 [ STX MMP ];
 @define CONVDP   "0x18000028:4"
 @define PSIZE    "0x1800002a:4"
 @define PMASK    "0x1800002c:4"
+@ifdef TMS34020
+# TMS34020 additions: PMASK is 32 bits (PMASKL, PMASKH), mask-array pitch conversion, CONFIG
+@define CONVMP   "0x18000030:4"
+@define CONFIG   "0x18000034:4"
+@endif
 
 @include "tms34010.sinc"

@@ -3,7 +3,8 @@
 #   1. compile the .slaspec (and report the .sla size)
 #   2. decode corpora vs MAME's disassembler: every opcode 0000h-FFFFh with random extension
 #      words, and 50,000 random slots (gen_corpus.py, DumpSlots.java, compare.py)
-#   3. every-entry test: every SLEIGH constructor is used by some decoded instruction
+#   3. every-entry test: every SLEIGH constructor is used by some decoded instruction (run after
+#      the TMS34020 corpora, over both languages)
 #   4. assembler corpus: every instruction form NetBSD's gspa accepts, random operands, compared
 #      with the source and with MAME (gen_asm.py, asm_check.py); skipped without GSPA
 #   4b. TI COFF: the same corpus as assembled and linked by TI's own GSPA/GSPLNK v1.04 (test/coff/,
@@ -14,6 +15,8 @@
 #      the default compiler spec and with "tic" (FS1 = 32 at entry, TI C compiler convention)
 #   6. graphics vectors: 137 MIT-licensed programs from github.com/birdybro/TMS34010_sv whose
 #      final state MAME recorded, run in Ghidra's emulator (GfxCheck.java)
+#   7. TMS34020 (tms34020:LE:32:default): the decode corpora vs unidasm -arch tms34020, the
+#      every-entry test over both languages, and the TMS34020 emulator tests (emu_tests_34020.py)
 #
 #   test/run-tests.sh [workdir]
 #
@@ -34,8 +37,10 @@ cd "$W"
 gs() { "$HERE/ghidra-script.sh" raw tms34010:LE:32:default "$@"; }
 
 echo "== compiling SLEIGH"
-(cd "$MOD/data/languages" && "$GHIDRA_INSTALL_DIR/support/sleigh" tms34010.slaspec 2>&1 |
-	grep -E "^(ERROR|Error)" || true)
+for l in tms34010 tms34020; do
+	(cd "$MOD/data/languages" && "$GHIDRA_INSTALL_DIR/support/sleigh" $l.slaspec 2>&1 |
+		grep -E "^(ERROR|Error)" || true)
+done
 ls -la "$MOD"/data/languages/*.sla | awk '{print "   " $9 ": " $5 " bytes"}'
 
 echo "== decode corpora vs MAME ($UNIDASM -arch tms34010)"
@@ -47,9 +52,6 @@ for c in table fuzz; do
 	echo "-- $c: $(head -1 cmp_$c.txt)"
 	sed -n '2,$p' cmp_$c.txt | sed 's/^/   /'
 done
-
-echo "== every-entry decode test"
-python3 "$HERE/entry_check.py" "$MOD/data/languages" ctor_table.txt ctor_fuzz.txt | sed 's/^/   /'
 
 echo "== assembler corpus (gspa)"
 if [[ -n ${GSPA:-} ]]; then
@@ -113,3 +115,25 @@ head -c 8192 /dev/zero >blank.bin
 gs blank.bin GfxCheck.java "$W/mame_graphics_vectors.txt" "$W/mame_graphics_expected.txt" "$W/gfx.txt"
 echo "   $(tail -1 gfx.txt)"
 grep -v -E ' OK|^graphics' gfx.txt | sed 's/^/   /' || true
+
+echo "== TMS34020: decode corpora vs MAME ($UNIDASM -arch tms34020)"
+gs20() { "$HERE/ghidra-script.sh" raw tms34020:LE:32:default "$@"; }
+for c in table fuzz special; do
+	"$UNIDASM" $c.bin -arch tms34020 >m20_$c.txt
+	gs20 $c.bin DumpSlots.java "$W/g20_$c.txt" 18 "$W/ctor20_$c.txt"
+	python3 "$HERE/compare.py" g20_$c.txt m20_$c.txt 18 --core mame_core_table_34020.txt >cmp20_$c.txt
+	echo "-- $c: $(head -1 cmp20_$c.txt)"
+	sed -n '2,$p' cmp20_$c.txt | sed 's/^/   /'
+done
+echo "== every-entry decode test (both languages)"
+python3 "$HERE/entry_check.py" "$MOD/data/languages" ctor_table.txt ctor_fuzz.txt ctor20_table.txt ctor20_fuzz.txt \
+	ctor20_special.txt | sed 's/^/   /'
+echo "== TMS34020 p-code emulator tests"
+python3 "$HERE/emu_tests_34020.py" . >/dev/null
+gs20 emu20.bin EmuCheck.java "$W/emu20.txt" "$W/emu20_res.txt"
+echo "   $(tail -1 emu20_res.txt)"
+grep FAIL emu20_res.txt | sed 's/^/   /' || true
+python3 "$HERE/emu_tests_34020.py" . --break 30 >/dev/null
+gs20 emu20.bin EmuCheck.java "$W/emu20.txt" "$W/emu20_res_break.txt"
+echo "   with test 30's expectation made wrong: $(tail -1 emu20_res_break.txt); $(grep FAIL emu20_res_break.txt)"
+python3 "$HERE/emu_tests_34020.py" . >/dev/null

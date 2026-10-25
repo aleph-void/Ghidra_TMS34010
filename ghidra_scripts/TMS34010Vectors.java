@@ -3,7 +3,7 @@
 // vector, converts the bit address it holds to a Ghidra address (bit address / 8), and
 // disassembles and creates a function there. Run it after importing a ROM image that includes
 // the top of the address space (for example a program ROM mapped at FF800000h, Ghidra address
-// 1FF00000h).
+// 1FF00000h). For the TMS34020 language it also marks traps 32 (single step) and 33 (bus fault).
 //@category TMS34010
 
 import ghidra.app.script.GhidraScript;
@@ -17,13 +17,14 @@ public class TMS34010Vectors extends GhidraScript {
 	private static final String[] NAMES = { "RESET", "INT1", "INT2", "TRAP3", "TRAP4", "TRAP5",
 		"TRAP6", "TRAP7", "NMI", "HI", "DI", "WV", "TRAP12", "TRAP13", "TRAP14", "TRAP15", "TRAP16",
 		"TRAP17", "TRAP18", "TRAP19", "TRAP20", "TRAP21", "TRAP22", "TRAP23", "TRAP24", "TRAP25",
-		"TRAP26", "TRAP27", "TRAP28", "TRAP29", "ILLOP", "TRAP31" };
+		"TRAP26", "TRAP27", "TRAP28", "TRAP29", "ILLOP", "TRAP31", "SINGLESTEP", "BUSFAULT" };
 
 	@Override
 	protected void run() throws Exception {
 		Memory mem = currentProgram.getMemory();
 		int n = 0;
-		for (int t = 0; t < 32; t++) {
+		boolean is34020 = currentProgram.getLanguageID().getIdAsString().startsWith("tms34020");
+		for (int t = 0; t < (is34020 ? 34 : 32); t++) {
 			Address v = toAddr(0x1ffffffcL - 4L * t);
 			if (!mem.contains(v) || !mem.getBlock(v).isInitialized()) {
 				continue;

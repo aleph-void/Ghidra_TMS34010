@@ -81,6 +81,11 @@ public class Tms340CoffLoader extends AbstractProgramWrapperLoader {
 			new LanguageCompilerSpecPair("tms34010:LE:32:default", "default"), true));
 		specs.add(new LoadSpec(this, 0,
 			new LanguageCompilerSpecPair("tms34010:LE:32:default", "tic"), false));
+		// TMS34020 code uses the same COFF format; the header does not tell the two apart
+		specs.add(new LoadSpec(this, 0,
+			new LanguageCompilerSpecPair("tms34020:LE:32:default", "default"), false));
+		specs.add(new LoadSpec(this, 0,
+			new LanguageCompilerSpecPair("tms34020:LE:32:default", "tic"), false));
 		return specs;
 	}
 

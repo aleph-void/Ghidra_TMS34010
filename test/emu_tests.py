@@ -13,8 +13,6 @@ at 60000h (byte C000h), ST at 00000010h. Data area: byte 8000h (bit 40000h).
 import struct
 import sys
 
-out = sys.argv[1]
-brk = int(sys.argv[sys.argv.index('--break') + 1]) if '--break' in sys.argv else -1
 M = 0xffffffff
 
 
@@ -370,6 +368,9 @@ T = [
 def fmt(items, labels):
     out = []
     for k, v in items.items():
+        if k in ('CPIN', 'CPOUT', 'CPCMD'):     # coprocessor lists (TMS34020), passed as written
+            out.append(f'{k}={v}')
+            continue
         if isinstance(v, str):
             v = labels[v] * 8
         if v is None:
@@ -381,24 +382,30 @@ def fmt(items, labels):
     return ','.join(out) if out else '-'
 
 
-img = bytearray(0x100 * len(T))
-lines = []
-for i, (name, items, init, exp) in enumerate(T):
-    base = 0x100 * i
-    words, labels = Asm(base).build(list(items) + ['__stop', stop()])
-    assert len(words) * 2 <= 0x100, name
-    struct.pack_into(f'<{len(words)}H', img, base, *words)
-    ex = dict(exp)
-    for k, v in exp.items():
-        if v is None and isinstance(k, tuple):
-            ex[k] = None
-    if name == 'calla_rets':
-        ex[('@bffc', 4)] = (base + 6) * 8          # return address pushed by CALLA (3 words)
-    if i == brk:
-        k = next(iter(ex))
-        ex[k] = (labels[ex[k]] * 8 if isinstance(ex[k], str) else ex[k]) ^ 1
-    lines.append(f'{name} {base:x} {labels["__stop"]:x} {fmt(init, labels)} {fmt(ex, labels)}')
+def write(T, out, brk, first=0, prefix='emu'):
+    """Writes <prefix>.bin and <prefix>.txt; test i is at Ghidra address first + 100h * i."""
+    img = bytearray(first + 0x100 * len(T))
+    lines = []
+    for i, (name, items, init, exp) in enumerate(T):
+        base = first + 0x100 * i
+        words, labels = Asm(base).build(list(items) + ['__stop', stop()])
+        assert len(words) * 2 <= 0x100, name
+        struct.pack_into(f'<{len(words)}H', img, base, *words)
+        ex = dict(exp)
+        for k, v in exp.items():
+            if v is None and isinstance(k, tuple):
+                ex[k] = None
+        if name == 'calla_rets':
+            ex[('@bffc', 4)] = (base + 6) * 8          # return address pushed by CALLA (3 words)
+        if i == brk:
+            k = next(iter(ex))
+            ex[k] = (labels[ex[k]] * 8 if isinstance(ex[k], str) else ex[k]) ^ 1
+        lines.append(f'{name} {base:x} {labels["__stop"]:x} {fmt(init, labels)} {fmt(ex, labels)}')
 
-open(f'{out}/emu.bin', 'wb').write(img)
-open(f'{out}/emu.txt', 'w').write('\n'.join(lines) + '\n')
-print(f'{len(T)} tests')
+    open(f'{out}/{prefix}.bin', 'wb').write(img)
+    open(f'{out}/{prefix}.txt', 'w').write('\n'.join(lines) + '\n')
+    print(f'{len(T)} tests')
+
+
+if __name__ == '__main__':
+    write(T, sys.argv[1], int(sys.argv[sys.argv.index('--break') + 1]) if '--break' in sys.argv else -1)

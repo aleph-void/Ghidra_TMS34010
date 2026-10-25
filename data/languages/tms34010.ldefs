@@ -13,4 +13,16 @@
         <compiler name="default" spec="tms34010.cspec" id="default"/>
         <compiler name="TI C compiler (FS1 = 32 at entry)" spec="tms34010_tic.cspec" id="tic"/>
     </language>
+    <language processor="TMS 34020"
+              endian="little"
+              size="32"
+              variant="default"
+              version="1.0"
+              slafile="tms34020.sla"
+              processorspec="tms34020.pspec"
+              id="tms34020:LE:32:default">
+        <description>Texas Instruments TMS34020 Graphics System Processor (byte address = bit address / 8)</description>
+        <compiler name="default" spec="tms34010.cspec" id="default"/>
+        <compiler name="TI C compiler (FS1 = 32 at entry)" spec="tms34010_tic.cspec" id="tic"/>
+    </language>
 </language_definitions>

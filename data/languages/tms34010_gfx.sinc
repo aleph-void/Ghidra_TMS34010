@@ -11,6 +11,14 @@
 
 @define INTPEND "0x18000024:4"
 
+# Memory word the pixel instructions work in: 16 bits on the TMS34010, 32 on the TMS34020
+# (whose pixels can be 32 bits; COLOR0/COLOR1 and PMASK are 32 bits wide).
+@ifdef TMS34020
+@define WMASK "31"
+@else
+@define WMASK "15"
+@endif
+
 # Pixel size in bits (PSIZE: 1, 2, 4, 8 or 16) and its log2
 macro pixsize(ps, shift) {
 	ps = zext(*:2 $(PSIZE));
@@ -30,7 +38,8 @@ macro ppop(r, op, s, d, m) {
 	local t00:4 = zext((t & 1) != 0) * 0xffffffff;
 	local bool:4 = (s & d & t11) | (s & ~d & t10) | (~s & d & t01) | (~s & ~d & t00);
 	local add:4 = s + d;
-	local adds:4 = add - zext(add > m) * (add - m);
+	local sat:1 = carry(s, d) || (add > m);
+	local adds:4 = add - zext(sat) * (add - m);
 	local sub:4 = d - s;
 	local subs:4 = zext(d > s) * (d - s);
 	local mx:4 = d + zext(s > d) * (s - d);
@@ -42,6 +51,40 @@ macro ppop(r, op, s, d, m) {
 }
 
 # Read the pixel at bit address a (plane-masked)
+@ifdef TMS34020
+macro rpix(res, a) {
+	local ps:4; local psh:4; pixsize(ps, psh);
+	local m:4 = (1:4 << ps) - 1;
+	local sh:4 = a & 31 & ~(ps - 1);
+	local w:4 = *:4 ((a & 0xffffffe0) >> 3);
+	local pm:4 = *:4 $(PMASK);
+	res = (w >> sh) & m & ~(pm >> sh);
+}
+
+# Write pixel src to bit address a with pixel processing, transparency and plane masking.
+# TMS34020 transparency modes, TM = CONTROL bits 2-0 (User's Guide 12.9): 000 and 100 transparent
+# when the result is 0, 001 when the source pixel equals the COLOR0 pixel, 101 when the
+# destination pixel equals the COLOR0 pixel (both as read through the plane mask).
+macro wpix(a, src) {
+	local ps:4; local psh:4; pixsize(ps, psh);
+	local m:4 = (1:4 << ps) - 1;
+	local sh:4 = a & 31 & ~(ps - 1);
+	local wa:4 = (a & 0xffffffe0) >> 3;
+	local w:4 = *:4 wa;
+	local pm:4 = (*:4 $(PMASK) >> sh) & m;
+	local d:4 = (w >> sh) & m & ~pm;
+	local ctl:4 = zext(*:2 $(CONTROL));
+	local sp:4 = src & m;
+	local r:4; ppop(r, (ctl >> 10) & 0x1f, sp, d, m);
+	local c0:4 = (B8 >> sh) & m;
+	local tm:4 = ctl & 5;
+	local tr:1 = ((tm & 1) == 0 && r == 0) || (tm == 1 && sp == c0) || (tm == 5 && d == (c0 & ~pm));
+	local keep:4 = zext(((ctl & 0x20) != 0) && tr);
+	local nw:4 = (w & ~(m << sh)) | ((((r & ~pm) | ((w >> sh) & pm)) & m) << sh);
+	nw = keep * w + (1:4 - keep) * nw;
+	*:4 wa = nw;
+}
+@else
 macro rpix(res, a) {
 	local ps:4; local psh:4; pixsize(ps, psh);
 	local m:4 = (1:4 << ps) - 1;
@@ -68,8 +111,35 @@ macro wpix(a, src) {
 	nw = keep * w + (1:4 - keep) * nw;
 	*:2 wa = nw:2;
 }
+@endif
 
 # XY address -> linear bit address with the destination (CONVDP) or source (CONVSP) pitch
+@ifdef TMS34020
+# TMS34020 CONVxP (User's Guide 12.12): bits 4-0 nonzero: the pitch is 2^(~bits 4-0), plus
+# 2^(~bits 12-8) if those are nonzero (a sum of two powers of 2); bits 4-0 zero: any pitch, the
+# Y half is multiplied by the pitch register itself (DPTCH B3, SPTCH B1, MPTCH B11).
+macro pitchfac(res, cv, ptch) {
+	local lo:4 = cv & 31; local hi:4 = (cv >> 8) & 31;
+	local f:4 = (1:4 << (~cv & 31)) + zext(hi != 0) * (1:4 << (~(cv >> 8) & 31));
+	res = zext(lo != 0) * f + zext(lo == 0) * ptch;
+}
+macro dxytol(res, xy) {
+	local ps:4; local psh:4; pixsize(ps, psh);
+	local cv:4 = zext(*:2 $(CONVDP));
+	local f:4; pitchfac(f, cv, B3);
+	local xx:2 = xy:2; local yy:2 = xy(2);
+	local x:4 = sext(xx); local y:4 = sext(yy);
+	res = y * f + (x << psh) + B4;
+}
+macro sxytol(res, xy) {
+	local ps:4; local psh:4; pixsize(ps, psh);
+	local cv:4 = zext(*:2 $(CONVSP));
+	local f:4; pitchfac(f, cv, B1);
+	local xx:2 = xy:2; local yy:2 = xy(2);
+	local x:4 = sext(xx); local y:4 = sext(yy);
+	res = y * f + (x << psh) + B4;
+}
+@else
 macro dxytol(res, xy) {
 	local ps:4; local psh:4; pixsize(ps, psh);
 	local cv:4 = zext(*:2 $(CONVDP));
@@ -84,6 +154,7 @@ macro sxytol(res, xy) {
 	local x:4 = sext(xx); local y:4 = sext(yy);
 	res = (y << (~cv & 31)) + (x << psh) + B4;
 }
+@endif
 
 # Window check of XY address xy for PIXT/DRAV/LINE: draw = 1 if the pixel may be written.
 # W=0: no check, V unaffected. W=1 (hit): never draw, V = outside. W=2 (miss): V = outside,
@@ -117,6 +188,18 @@ macro wincheck(draw, xy) {
 	local a:4; dxytol(a, Rd);
 	wpix(a, Rs);
 }
+@ifdef TMS34020
+# TMS34020: the status is unaffected
+:PIXT *Rs,Rd is op7=0x7d & Rs & Rd {
+	local p:4; rpix(p, Rs);
+	Rd = p;
+}
+:PIXT *Rs^".XY",Rd is op7=0x79 & Rs & Rd {
+	local a:4; sxytol(a, Rs);
+	local p:4; rpix(p, a);
+	Rd = p;
+}
+@else
 :PIXT *Rs,Rd is op7=0x7d & Rs & Rd {
 	local p:4; rpix(p, Rs);
 	Rd = p; V = p != 0;
@@ -126,6 +209,7 @@ macro wincheck(draw, xy) {
 	local p:4; rpix(p, a);
 	Rd = p; V = p != 0;
 }
+@endif
 :PIXT *Rs,*Rd is op7=0x7e & Rs & Rd {
 	local p:4; rpix(p, Rs);
 	wpix(Rd, p);
@@ -183,8 +267,18 @@ LineZ: "1" is z7=1 { export 1:4; }
 	B10 = B10 - 1;
 	if (w == 1 || (w == 3 && out)) goto <step>;
 	local la:4; dxytol(la, B2);
+@ifdef TMS34020
+	# TMS34020: bit 0 of PATTERN (B13) selects COLOR1 (1) or COLOR0 (0)
+	local lc:4 = zext((B13 & 1) == 1) * B9 + zext((B13 & 1) == 0) * B8;
+	wpix(la, lc);
+@else
 	wpix(la, B9);
+@endif
 <step>
+@ifdef TMS34020
+	# PATTERN is rotated right by one bit for every pixel of the line
+	B13 = (B13 >> 1) | (B13 << 31);
+@endif
 	B0 = nd;
 	local i1y:2 = B11(2); local i2y:2 = B12(2);
 	local ix:2 = B11:2 * zext(diag) + B12:2 * zext(!diag);
@@ -306,7 +400,7 @@ macro arraywin(go, x0, y0, dx, dy, ox, oy) {
 	local x:4 = 0;
 	local a:4 = row;
 <pixloop>
-	local sh:4 = a & 15 & ~(ps - 1);
+	local sh:4 = a & $(WMASK) & ~(ps - 1);
 	wpix(a, B9 >> sh);
 	a = a + ps;
 	x = x + 1;
@@ -370,7 +464,7 @@ macro arraywin(go, x0, y0, dx, dy, ox, oy) {
 <bin>
 	local bit:2 = *:2 ((s & 0xfffffff0) >> 3);
 	local one:4 = zext(((bit >> (s & 15)) & 1) == 1);
-	local sh:4 = d & 15 & ~(ps - 1);
+	local sh:4 = d & $(WMASK) & ~(ps - 1);
 	p = (one * B9 + (1 - one) * B8) >> sh;
 <put>
 	wpix(d, p);

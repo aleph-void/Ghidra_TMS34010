@@ -29,7 +29,10 @@ the zip for your Ghidra version from the [Releases page](https://github.com/alep
 then in Ghidra choose *File > Install Extensions*, add the zip, and restart Ghidra. To build it
 yourself, run `gradle buildExtension` with `GHIDRA_INSTALL_DIR` set.
 
-The language is `tms34010:LE:32:default`.
+The languages are `tms34010:LE:32:default` and `tms34020:LE:32:default`. The latter adds the
+TMS34020 instructions and changed graphics behavior. The extension also includes a TI COFF
+loader for GSPA/GSPLNK objects and executables. See [GHIDRA-RARE.md](GHIDRA-RARE.md) for the
+decode, emulator and loader checks.
 
 ## Addresses (*Ghidra-Rare*)
 

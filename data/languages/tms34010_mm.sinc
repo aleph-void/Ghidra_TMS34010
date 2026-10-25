@@ -131,13 +131,13 @@ mfB15: ",SP" is l15=1 { SP = *:4 (MMP >> 3); MMP = MMP + 32; }
 mfB15: "" is l15=0 { }
 
 :MMTM Rd^mtA0^mtA1^mtA2^mtA3^mtA4^mtA5^mtA6^mtA7^mtA8^mtA9^mtA10^mtA11^mtA12^mtA13^mtA14^mtA15 is op11=0x04c & rf=0 & Rd; mtA0 & mtA1 & mtA2 & mtA3 & mtA4 & mtA5 & mtA6 & mtA7 & mtA8 & mtA9 & mtA10 & mtA11 & mtA12 & mtA13 & mtA14 & mtA15 {
-	MMP = Rd; build mtA0; build mtA1; build mtA2; build mtA3; build mtA4; build mtA5; build mtA6; build mtA7; build mtA8; build mtA9; build mtA10; build mtA11; build mtA12; build mtA13; build mtA14; build mtA15; Rd = MMP;
+	mmtm_flags(Rd); MMP = Rd; build mtA0; build mtA1; build mtA2; build mtA3; build mtA4; build mtA5; build mtA6; build mtA7; build mtA8; build mtA9; build mtA10; build mtA11; build mtA12; build mtA13; build mtA14; build mtA15; Rd = MMP;
 }
 :MMFM Rd^mfA0^mfA1^mfA2^mfA3^mfA4^mfA5^mfA6^mfA7^mfA8^mfA9^mfA10^mfA11^mfA12^mfA13^mfA14^mfA15 is op11=0x04d & rf=0 & Rd; mfA0 & mfA1 & mfA2 & mfA3 & mfA4 & mfA5 & mfA6 & mfA7 & mfA8 & mfA9 & mfA10 & mfA11 & mfA12 & mfA13 & mfA14 & mfA15 {
 	MMP = Rd; build mfA15; build mfA14; build mfA13; build mfA12; build mfA11; build mfA10; build mfA9; build mfA8; build mfA7; build mfA6; build mfA5; build mfA4; build mfA3; build mfA2; build mfA1; build mfA0; Rd = MMP;
 }
 :MMTM Rd^mtB0^mtB1^mtB2^mtB3^mtB4^mtB5^mtB6^mtB7^mtB8^mtB9^mtB10^mtB11^mtB12^mtB13^mtB14^mtB15 is op11=0x04c & rf=1 & Rd; mtB0 & mtB1 & mtB2 & mtB3 & mtB4 & mtB5 & mtB6 & mtB7 & mtB8 & mtB9 & mtB10 & mtB11 & mtB12 & mtB13 & mtB14 & mtB15 {
-	MMP = Rd; build mtB0; build mtB1; build mtB2; build mtB3; build mtB4; build mtB5; build mtB6; build mtB7; build mtB8; build mtB9; build mtB10; build mtB11; build mtB12; build mtB13; build mtB14; build mtB15; Rd = MMP;
+	mmtm_flags(Rd); MMP = Rd; build mtB0; build mtB1; build mtB2; build mtB3; build mtB4; build mtB5; build mtB6; build mtB7; build mtB8; build mtB9; build mtB10; build mtB11; build mtB12; build mtB13; build mtB14; build mtB15; Rd = MMP;
 }
 :MMFM Rd^mfB0^mfB1^mfB2^mfB3^mfB4^mfB5^mfB6^mfB7^mfB8^mfB9^mfB10^mfB11^mfB12^mfB13^mfB14^mfB15 is op11=0x04d & rf=1 & Rd; mfB0 & mfB1 & mfB2 & mfB3 & mfB4 & mfB5 & mfB6 & mfB7 & mfB8 & mfB9 & mfB10 & mfB11 & mfB12 & mfB13 & mfB14 & mfB15 {
 	MMP = Rd; build mfB15; build mfB14; build mfB13; build mfB12; build mfB11; build mfB10; build mfB9; build mfB8; build mfB7; build mfB6; build mfB5; build mfB4; build mfB3; build mfB2; build mfB1; build mfB0; Rd = MMP;

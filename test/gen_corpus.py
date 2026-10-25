@@ -8,6 +8,8 @@ Ghidra side decodes only the slot starts.
 
   table.bin  every 16-bit opcode 0000h-FFFFh once, extension words random (65,536 slots)
   fuzz.bin   50,000 random opcode words with random extension words (seeded)
+  special.bin  encodings the random extension words almost never produce: TMS34020 CMOVCS
+             (0660h with a second word whose low byte is 01h), each with random command bits
 
   gen_corpus.py <outdir>
 """
@@ -35,6 +37,11 @@ def main():
     write(f'{out}/table.bin', range(0x10000), rng)
     rng = random.Random(340100)
     write(f'{out}/fuzz.bin', [rng.getrandbits(16) for _ in range(50000)], rng)
+    rng = random.Random(34020)
+    with open(f'{out}/special.bin', 'wb') as f:
+        for _ in range(64):
+            f.write(struct.pack('<9H', 0x0660, (rng.getrandbits(8) << 8) | 0x01, rng.getrandbits(16),
+                                rng.getrandbits(16), rng.getrandbits(16), *[NOP] * 4))
 
 
 if __name__ == '__main__':

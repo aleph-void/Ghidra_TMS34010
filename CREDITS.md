@@ -24,6 +24,9 @@ repository, on top of its full history, so the original license and authorship a
 - Texas Instruments, *TMS34010 User's Guide* (SPVU001A, 1988) and *TMS34010 C Compiler
   Reference Guide* (1988): instruction semantics, status bits, graphics operations, the C
   calling convention. Many emulator expectations are the guide's own examples.
+- Texas Instruments, *TMS34020 User's Guide* (2564006-9721, 1990): the successor's instruction
+  forms, semantics and changed graphics behavior. MAME's TMS34020 disassembler was used as a
+  black-box decode reference; no MAME source was copied into the language.
 - [birdybro/TMS34010_sv](https://github.com/birdybro/TMS34010_sv) (MIT, Kevin Coleman): the 137
   graphics test programs with MAME-recorded results that `test/run-tests.sh` downloads (pinned),
   and its documented reading of the User's Guide for PIXBLT/FILL completion registers, PBH/PBV
@@ -64,6 +67,10 @@ repository, on top of its full history, so the original license and authorship a
    vectors of a raw image and creates functions at their targets.
 5. **README.md**: Ghidra-Rare notes, install steps, the address mapping, and the status of the
    original "incomplete" note.
+6. **TMS34020 and TI COFF.** Added the successor language, its 64 I/O registers and graphics
+   behavior, plus a loader for TI GSPA/GSPLNK COFF objects and executables. The TMS34020
+   instruction set was checked against MAME and with 80 hand-computed emulator sequences;
+   the COFF loader was checked on relocatable and linked assembler-corpus files.
 
 Ghidra-Rare additions (not upstream): `GHIDRA-RARE.md`, `CREDITS.md`, `LICENSE` (copy of
 `LICENSE.md`), `build.gradle`, `extension.properties`, `.gitignore`, `.github/`, `test/` and

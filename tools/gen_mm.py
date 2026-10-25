@@ -34,7 +34,7 @@ for f, rf in (('A', 0), ('B', 1)):
     mt = ' & '.join(f'mt{f}{i}' for i in range(16))
     mf = ' & '.join(f'mf{f}{i}' for i in range(16))
     out.append(f':MMTM Rd^' + '^'.join(f'mt{f}{i}' for i in range(16)) + f' is op11=0x04c & rf={rf} & Rd; {mt} {{')
-    out.append('\tMMP = Rd; ' + ' '.join(f'build mt{f}{i};' for i in range(16)) + ' Rd = MMP;')
+    out.append('\tmmtm_flags(Rd); MMP = Rd; ' + ' '.join(f'build mt{f}{i};' for i in range(16)) + ' Rd = MMP;')
     out.append('}')
     out.append(f':MMFM Rd^' + '^'.join(f'mf{f}{i}' for i in range(16)) + f' is op11=0x04d & rf={rf} & Rd; {mf} {{')
     out.append('\tMMP = Rd; ' + ' '.join(f'build mf{f}{i};' for i in range(15, -1, -1)) + ' Rd = MMP;')

@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Compare Ghidra slot decodes (DumpSlots.java) with MAME unidasm output for a slot corpus.
 
-  compare.py <ghidra.txt> <mame.txt> [slot-bytes] [--list N]
+  compare.py <ghidra.txt> <mame.txt> [slot-bytes] [--list N] [--core <table>]
+
+--core selects MAME's core opcode table (default mame_core_table.txt, the TMS34010's; the
+TMS34020's is mame_core_table_34020.txt, compared with unidasm -arch tms34020).
 
 Normalisations (display conventions only, each counted):
   - MAME prints branch/call targets as bit addresses, Ghidra as byte (Ghidra) addresses: the
@@ -10,6 +13,8 @@ Normalisations (display conventions only, each counted):
   - MAME compresses MMTM/MMFM register runs (A0-A3); both lists are expanded.
   - Numbers are compared by value; a 16-bit immediate MAME prints unsigned and Ghidra signed
     compares equal modulo 2^16.
+  - TMS34020 coprocessor instructions: MAME prints the command field as six hex digits without a
+    suffix, predecrement as "*-Rd" (TI: "-*Rd") and CMOVCS with a leading comma.
 Agreement classes: exact text after normalisation, both invalid, or a difference. Differences are
 bucketed by mnemonic and reason.
 """
@@ -18,6 +23,7 @@ import sys
 from collections import Counter, defaultdict
 
 BRANCHES = {'CALLA', 'CALLR', 'DSJ', 'DSJEQ', 'DSJNE', 'DSJS'}
+COPROC = {'CEXEC', 'CMOVCG', 'CMOVCM', 'CMOVCS', 'CMOVGC', 'CMOVMC'}
 
 
 def is_branch(m):
@@ -86,6 +92,10 @@ def norm_mame(text):
     ops = split_ops(rest) if rest else []
     if mn in ('MMTM', 'MMFM'):
         ops = ops[:1] + expand_list(ops[1:])
+    if mn in COPROC:
+        if mn == 'CMOVCS' and ops and ops[0] == '':
+            ops = ops[1:]
+        ops = [('0x' + o) if re.fullmatch(r'[0-9A-F]{6}', o) else re.sub(r'^\*-', '-*', o) for o in ops]
     return mn, ops
 
 
@@ -163,7 +173,8 @@ def main():
         nlist = int(sys.argv[sys.argv.index('--list') + 1])
     g = load_ghidra(gpath, slot)
     import os
-    reserved = load_core(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mame_core_table.txt'))
+    core = sys.argv[sys.argv.index('--core') + 1] if '--core' in sys.argv else 'mame_core_table.txt'
+    reserved = load_core(os.path.join(os.path.dirname(os.path.abspath(__file__)), core))
     mm = load_mame(mpath, slot * 8)
     c = Counter()
     diffs = defaultdict(list)
@@ -196,6 +207,11 @@ def main():
             # MAME's disassembler prints MOVB @SAddress,Rd (07E0h) as MOVE; its core runs MOVB
             c['explained'] += 1
             diffs['explained: MAME prints MOVB @SAddress,Rd (07E0h) as MOVE'].append(f'{op}: mame "{mtext}" ghidra "{gtext}"')
+            continue
+        if mn == 'TRAPL' and gn == 'TRAPL' and not mops and len(gops) == 1 and mlen == 2 and glen == 4:
+            # TMS34020 TRAPL N is two words; MAME's disassembler prints TRAPL without reading N
+            c['explained'] += 1
+            diffs["explained: MAME's disassembler does not read TRAPL's trap-number word"].append(f'{op}: mame "{mtext}" ghidra "{gtext}"')
             continue
         ok = mn == gn and len(mops) == len(gops)
         if ok:

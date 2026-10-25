@@ -1,9 +1,10 @@
-# TI TMS34010 processor module for Ghidra
+# TI TMS34010 / TMS34020 processor module for Ghidra
 
 A SLEIGH processor module for the Texas Instruments TMS34010 Graphics System Processor (GSP),
 the CPU of many late-1980s/1990s arcade boards (Midway T/Y/Wolf units, Atari Games), TIGA PC
-graphics cards and boards like the Amiga A2410. It is a community module that Ghidra-Rare
-imported, tested against MAME and real code, and largely rewrote:
+graphics cards and boards like the Amiga A2410, and for its successor the TMS34020. It is a
+community module that Ghidra-Rare imported, tested against MAME and real code, and largely
+rewrote:
 
 - [ZPaul2Fresh8/Ghidra_TMS34010](https://github.com/ZPaul2Fresh8/Ghidra_TMS34010) by ZPaul2Fresh8.
 - Apache-2.0.
@@ -11,17 +12,19 @@ imported, tested against MAME and real code, and largely rewrote:
 - It targets Ghidra 12.1.4, and also builds on 12.1.3 and 12.2. Prebuilt zips are on the fork's
   [Releases page](https://github.com/aleph-void/Ghidra_TMS34010/releases).
 
-The TMS34020 is not covered (it adds instructions and changes some encodings; MAME's
-`tms34020` disassembler shows the differences).
-
-## Language
+## Languages
 
 | Language ID | Description |
 |---|---|
 | `tms34010:LE:32:default` | TMS34010, little endian, 32-bit bit addresses |
+| `tms34020:LE:32:default` | TMS34020: the TMS34010 instruction set plus the TMS34020's instructions and changes (see "TMS34020") |
 
-There is no ELF or COFF opinion: TMS34010 code comes as ROM images (import them as raw binary)
-or as TI COFF files, which Ghidra does not load (see "Known gaps").
+Both have two compiler specs: `default`, and `tic` ("TI C compiler (FS1 = 32 at entry)"), which
+tells the decompiler what TI's C compiler guarantees about the field size (see "Decompiler").
+
+TMS340 code comes as ROM images (import them as raw binary) or as TI COFF files. The module's
+**TMS340 COFF loader** reads the objects and executables of TI's GSP assembler and linker
+(magic 0090h; see "TI COFF loader").
 
 ### Memory model: Ghidra address = bit address / 8
 
@@ -52,7 +55,13 @@ address) is 8 times the Ghidra address.
 - `tms34010_gfx.sinc`: PIXT, DRAV, CPW, CVXYL, LINE, FILL and PIXBLT.
 - `tms34010.pspec`: I/O register block (volatile) and names, vector labels.
 - `tms34010.cspec`: TMS34010 C compiler convention. A8 holds the return value; every other
-  register is preserved; SP is the system stack.
+  register is preserved; SP is the system stack. `tms34010_tic.cspec`: the same, plus FS1 = 32
+  at function entry.
+- `tms34020.slaspec`, `tms34020.sinc`, `tms34020.pspec`: the TMS34020 language. The slaspec
+  defines `TMS34020` and includes the TMS34010 specification, whose `@ifdef TMS34020` parts
+  hold the changed behaviour; `tms34020.sinc` has the new instructions; the pspec names the
+  TMS34020's 64 I/O registers.
+- `src/main/java/tms34010/Tms340CoffLoader.java`: the TI COFF loader.
 
 ## What is decoded
 
@@ -221,6 +230,171 @@ The program exercises:
 - MMTM/MMFM, CALL through a register, MPYU, CMPXY with JRC/JRV.
 - Writes to the I/O registers.
 
+### TI COFF loader
+
+`Tms340CoffLoader` loads TMS340 COFF (magic 0090h), the format of TI's GSP assembler (GSPA)
+and linker (GSPLNK). TMS340 COFF gives section addresses and sizes, symbol values and
+relocation addresses in bits; the loader divides them by 8 (the module's address mapping).
+
+- Executables (F_RELFLG set) load at their linked addresses; the optional header's entry point
+  becomes `entry`.
+- Relocatable objects get their sections laid out one after another from address 0, and their
+  32-bit absolute relocations (type 11h, R_RELLONG) against sections are applied and recorded in
+  the relocation table. Relocations against undefined symbols are reported in the import log.
+- Global, static and label symbols at byte-aligned addresses become labels; globals become
+  entry points.
+- It offers both languages and both compiler specs; the file header does not distinguish a
+  TMS34010 from a TMS34020 program, so `tms34010:LE:32:default` is the default.
+
+There is no freely licensed TMS340 COFF file, so the test builds its own: the assembler corpus
+above (`gen_asm.py`, 1,656 source lines) converted to TI syntax by `test/ti_coff.py` and
+assembled and linked by TI's own GSPA/GSPLNK v1.04 (1986, MS-DOS, run under DOSBox;
+`test/build-ti-coff.sh`). The tools are not redistributable and are not included; their output
+for this corpus is in `test/coff/` (`c.asm`, the listing `c.lst`, the object `c.obj` and the
+executable `c.out`, linked with `.text` at bit FF800000h). TI v1.04 lacks REV, assembles
+`JRcc L` (a long relative jump to a label) only as JAcc and rejects MPYS/DIVS with the
+B14/A14 pair, so `ti_coff.py` rewrites those 52 lines.
+
+| File | Check | Result |
+|---|---|---|
+| `c.obj` (relocatable, 48 relocations) | every instruction vs the source line | 1,644 agree; 12 DSJ that the assembler shortened to DSJS |
+| `c.out` (linked) | every instruction vs the source line | 1,644 agree; 12 DSJ shortened to DSJS |
+| `c.out` | vs MAME at the same addresses | 1,631 identical; 13 in the explained MAME classes 2 and 3 |
+
+So TI's own assembler is a third decode oracle, and it agrees with Ghidra on every instruction.
+
+### Decompiler
+
+**Field sizes (compiler spec `tic`).** Field moves depend on FS0/FE0/FS1/FE1 in ST, which are
+unknown at function entry. TI's C compiler keeps FS1 = 32 (and FE1 = 0) throughout C code
+(TMS34010 C Compiler Reference Guide, section 5), so the `tic` compiler spec sets FS1 = 0
+(meaning 32) at every function entry. `test/run-tests.sh` decompiles a TI-C-style function
+(three arguments read from the A14 program stack with `MOVE *A13(-n),Rd,1`, summed) with both
+specs:
+
+| Compiler spec | Lines of C | References to FS1 |
+|---|---|---|
+| `default` | 47 | 6 (generic bit-field extraction with sign handling) |
+| `tic` | 27 | 0 (plain 32-bit loads and a sum) |
+
+Hand-written assembly that changes FS1 is still exact, because SETF and EXGF set it inside
+the function; the default spec makes no assumption.
+
+**Bit-addressed pointers.** Memory accesses through a register decompile as
+`*(T *)(p >> 3)`, and stack frames and stack parameters cannot be recovered. This is a limit of
+Ghidra, not of the p-code, which is exact. Ghidra's smallest addressable unit is a byte:
+an address space's `wordsize` can make a unit larger than a byte but never smaller. A
+TMS34010 pointer counts bits, so every pointer has to be divided by 8 somewhere. These were
+tried:
+
+- **A `segmentop` (pspec)** doing the division, with SP and register pointers passed through
+  it. The decompiler then hides the `>> 3`, but it treats the bit offsets as byte offsets: a
+  32-bit stack slot 20h bits below the frame is shown as a 32-byte array 20h bytes below it,
+  and pointer arithmetic on typed pointers is scaled by 8 too, which is wrong rather than just
+  unidiomatic. Ghidra's emulators also stop at the segment userop
+  (`UnimplementedCallOtherException`) unless a userop library is written for it. Rejected.
+- **A14 (the C program stack) as the cspec stack pointer.** There is no scale attribute for a
+  stack pointer, so offsets stay in bits. Loads through A14 then become `in_stack_ffffffe0`-style
+  variables, but at bit offsets displayed as byte offsets. Parameters cannot be declared at all:
+  for a stack that grows upwards Ghidra requires each `<pentry>` size to equal its alignment, and
+  a 32-bit argument occupies 32 address units (bits). Rejected.
+- **A decompiler-visible conversion** is what the module does: the p-code computes
+  `address >> 3` (plus a shift for fields that do not start on a byte), so the decompiler shows
+  exactly what happens.
+
+Nothing in Ghidra 12 lets a processor declare "this register holds an address in 1/8 units",
+so the `>> 3` stays visible.
+
+## TMS34020
+
+`tms34020:LE:32:default` is the TMS34010 specification compiled with `TMS34020` defined. The
+TMS34020 runs TMS34010 object code; the language adds its instructions and the documented
+changes. The reference is the *TMS34020 User's Guide* (TI 2564006-9721, August 1990).
+MAME's `tms34020` disassembler is the decode oracle. MAME's TMS34020 core is not a semantic
+oracle: it implements CMPK, RMO, RPIX, ADDXYI, BLMOVE, MMTM's N flag and, partly, CLIP, CVDXYL
+(B file only) and SETCDP; everything else only logs (see "Confirmed reference-tool bugs").
+
+### New instructions
+
+| Group | Instructions | Semantics |
+|---|---|---|
+| Arithmetic | CMPK, RMO, ADDXYI, SWAPF *Rs,Rd,0 | full p-code |
+| Control | TRAPL N (vector FFFFFFE0h - 32N, signed 16-bit N), RETM, IDLE, MWAIT | full p-code; IDLE's wait for an interrupt is a pcodeop (`wait_for_interrupt`), MWAIT a no-op |
+| Block move | BLMOVE S,D | full p-code: any bit alignment, B0/B2 advanced by the count, B7 = 0 |
+| Pixel size and pitch | GETPS, EXGPS, RPIX, SETCSP, SETCDP, SETCMP | full p-code (CONVxP = LMO of a power of 2, two LMOs for a sum of two, else 0) |
+| XY to linear | CVSXYL, CVDXYL, CVMXYL | full p-code, all three CONVxP forms |
+| Clipping, lines | CLIP, LINIT, FLINE 0/1 | full p-code |
+| Fills, transfers | PFILL XY, TFILL XY, FPIXEQ, FPIXNE, PIXBLT L,M,L | full p-code with pixel processing, transparency, plane mask, window modes where the guide allows them |
+| VRAM block write | VLCOL, VFILL L, VBLT B,L | VLCOL loads the VRAMs' colour registers, modelled as register VCOLOR; VFILL/VBLT write VCOLOR pixels through the plane mask |
+| Coprocessor | CEXEC (long, short), CMOVGC (one, two registers), CMOVCG, CMOVCS, CMOVMC (*Rs+, -*Rs, register count), CMOVCM (*Rd+, -*Rd) | the TMS34020 side is p-code (registers, every memory transfer at any bit alignment, pointer updates, N/Z/V, CMOVCS's N/C/Z/V); the coprocessor's side is three pcodeops: `coprocessor_command(ID, command, size)`, `coprocessor_write(ID, value)`, `coprocessor_read(ID)` |
+
+### Changed TMS34010 behaviour
+
+- Pixels may be 32 bits; COLOR0/COLOR1 and PMASK (PMASKL/PMASKH) are 32 bits, and pixel
+  instructions work in 32-bit words.
+- Transparency has three modes, TM = CONTROL bits 2-0: result = 0, source = COLOR0,
+  destination = COLOR0.
+- CONVSP/CONVDP/CONVMP: a single power of 2, a sum of two powers of 2 (bits 12-8 hold the
+  second LMO), or 0 for an arbitrary pitch, which multiplies Y by SPTCH/DPTCH/MPTCH. This applies
+  to every XY instruction (CVXYL, PIXT, DRAV, LINE, FILL, PIXBLT) as well as the new ones.
+- LINE draws COLOR1 or COLOR0 as bit 0 of PATTERN (B13) is 1 or 0, and rotates PATTERN right
+  by one bit per pixel.
+- MMTM sets N (1 if the pointer is >= 0 before the transfer).
+- PIXT *Rs,Rd and *Rs.XY,Rd leave V alone.
+- REV returns 00000011h (revision 2.0; revision 1.0 returned 00000010h).
+- The pspec has the TMS34020's 64 I/O registers (the video timing registers moved) and the
+  single-step and bus-fault vectors (traps 32 and 33).
+- The ADDS saturation now also works with 32-bit pixels (carry out of bit 31); for smaller
+  pixels nothing changed.
+
+### Decoding vs MAME (`unidasm -arch tms34020`)
+
+| Corpus | Records | Same instruction | Both invalid | Explained | Unexplained |
+|---|---|---|---|---|---|
+| table: every opcode 0000h-FFFFh | 65,536 | 56,448 | 7,872 | 1,216 | 0 |
+| fuzz: random opcodes | 50,000 | 43,032 | 6,051 | 917 | 0 |
+| special: CMOVCS encodings | 64 | 64 | 0 | 0 | 0 |
+
+The explained classes:
+
+1. Opcodes MAME's disassembler decodes but its TMS34020 core table marks reserved, as for the
+   TMS34010, now including the new instructions' don't-care rows (e.g. CEXEC 0610h-061Fh,
+   PIXBLT L,M,L 0E00h-0E0Fh, SETCSP 0240h-024Fh). Ghidra follows the core table, except for
+   FLINE and LINIT: MAME's core has handlers for them that its table never references, while
+   the User's Guide gives their encodings (DE1Ah/DE9Ah, 0C57h). Ghidra decodes the rows holding
+   those words (DE10h-DE1Fh, DE90h-DE9Fh, 0C50h-0C5Fh) and agrees with MAME's disassembler
+   there; the other halves of MAME's rows count in this class.
+2. MOVB @SAddress,Rd printed as MOVE, and SRA/SRL 0 printed as 20h (as for the TMS34010).
+3. TRAPL: MAME's disassembler prints `TRAPL` and does not read the trap-number word, so it
+   decodes the TMS34020's two-word instruction as one word (16 table, 12 fuzz records).
+
+Coprocessor syntax is normalised as display conventions: MAME prints the 21-bit command
+without a hex suffix, predecrement as `*-Rd` (TI: `-*Rd`) and CMOVCS with a leading comma.
+
+**Every-entry test:** all 376 SLEIGH constructors of both languages are used by a decoded
+instruction of the TMS34010 or TMS34020 corpora.
+
+### Emulator
+
+`test/emu_tests_34020.py` runs 80 sequences on the TMS34020 language, worked out by hand from
+the User's Guide; 26 are the guide's own examples (`_ug`). EmuCheck gives the coprocessor
+pcodeops a model coprocessor that records commands and the values it receives and returns
+queued values, so the TMS34020 side of every CMOV form is checked. The tests cover every new
+instruction and every changed behaviour listed above: CMPK, RMO, ADDXYI, SWAPF (test-and-set
+and a sign-extended field), TRAPL with a negative and a positive trap number and the pushed
+PC/ST, RETM, IDLE/MWAIT, BLMOVE (aligned, unaligned 12 and 40 bits), GETPS/EXGPS, RPIX at every
+pixel size, the three SETCxP with the guide's pitches, CVDXYL/CVMXYL/CVSXYL/CVXYL with power of 2,
+two-power and arbitrary pitches, CLIP inside/partial/outside, LINIT (x major, y major with
+negative steps, a trivially rejected vertical line), FLINE 0 with a pattern, FLINE 1 diagonal,
+the LINE pattern, PFILL XY with two pattern alignments, TFILL XY with and without W=3, FPIXEQ
+upwards and not found, FPIXNE downwards, PIXBLT L,M,L, VLCOL/VFILL (also with the plane mask),
+VBLT, the transparency modes, 32-bit pixels with a 32-bit plane mask, ADD/ADDS on 32-bit
+pixels, FILL with 32-bit pixels, MMTM's N, REV, PIXT to a register, CEXEC (long and short),
+CMOVGC one and two registers, CMOVCS, CMOVCG with one and two values, and CMOVMC/CMOVCM in
+every addressing form including an unaligned transfer.
+
+Results: 80/80 on Ghidra 12.1.3, 12.1.4 and 12.2. With `--break 30` exactly that test fails.
+
 ## Upstream limitations and issues
 
 - **README:** "Current status is incomplete, some semantics are still needed to be finished as
@@ -263,14 +437,14 @@ These cannot be fixed in the module:
 - **Undefined cases follow MAME or are documented:** MMTM/MMFM with the pointer in the list
   (TI: "unpredictable"), PSIZE values other than 1/2/4/8/16, and REV (returns 8, the guide's
   example).
-- **Not provided:**
-  - A TI COFF loader. TI's toolchain writes COFF with bit addresses, which Ghidra's COFF loader
-    does not handle, and there are no freely licensed TMS340 COFF files to test one against.
-  - The TMS34020.
+- **Coprocessor execution on TMS34020:** the GSP side of each transfer has p-code, while the
+  attached coprocessor's behavior is represented by user operations.
 
 ### Unverified
 
 - Real commercial code (arcade, TIGA): none is freely licensed, and none was used.
+- Real TMS34020 code: no freely licensed image was found; its decode and semantics were checked
+  against MAME and the TMS34020 User's Guide respectively.
 - TI C compiler output: the compiler is not freely available. The cspec follows its manual.
 - PIXBLT/FILL window modes W=1 and W=2, and PBV with PIXBLT L,L. These are implemented from
   the User's Guide and the TMS34010_sv notes. MAME's core logs W=2 as "not supported" and

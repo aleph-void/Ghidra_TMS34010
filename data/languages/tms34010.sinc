@@ -46,12 +46,20 @@ define token opw(16)
 	rdi   = (0,3)
 	rsi   = (5,8)
 	rd0   = (0,0)
+	b1    = (1,1)
+	cs5   = (1,5)
+	op9   = (7,15)
 ;
 
 # Extension words: up to four, in order. 16-bit words and 32-bit longs (LSW first).
-define token ext1(16) iw1 = (0,15) iw1s = (0,15) signed;
+define token ext1(16) iw1 = (0,15) iw1s = (0,15) signed iw1id = (13,15);
 define token ext2(16) iw2 = (0,15) iw2s = (0,15) signed;
-define token lng1(32) il1 = (0,31) il1lo = (0,3);
+# lng1 also carries the TMS34020 coprocessor instruction word: register or transfer count in bits
+# 4-0, size bit 7, the 21-bit command in bits 28-8 and the coprocessor ID in bits 31-29
+define token lng1(32) il1 = (0,31) il1lo = (0,3)
+	cp_r = (0,3) cp_rB = (0,3) cp_rf = (4,4) cp_n = (0,4) cp_lo8 = (0,7) cp_sz = (7,7)
+	cp_cmd = (8,28) cp_id = (29,31)
+;
 define token lng2(32) il2 = (0,31);
 # Register lists of MMTM (bit 15 = R0) and MMFM (bit 0 = R0)
 define token rlist(16)
@@ -150,6 +158,14 @@ macro resetst() {
 }
 
 macro setnz(r) { N = r s< 0; Z = r == 0; }
+
+# MMTM status: the TMS34020 sets N to the sign of 0 - Rp (1 if Rp >= 0, as MAME's core and the
+# User's Guide's exceptions for 0 and 80000000h say); the TMS34010 leaves the status alone.
+@ifdef TMS34020
+macro mmtm_flags(rp) { N = rp s>= 0; }
+@else
+macro mmtm_flags(rp) { }
+@endif
 
 # a + b (+ cin): C is the carry out of bit 31, V the signed overflow
 macro addflags(a, b, r) {
@@ -711,8 +727,14 @@ macro do_srl(r, k) {
 :NOP is op12=0x030 { }
 # EMU acts as a NOP unless the RUN/EMU pin selects emulation mode (an XDS emulator is attached)
 :EMU is op12=0x010 { }
+@ifdef TMS34020
+# REV: TMS34020 revision 1.0 returns 00000010h, revision 2.0 00000011h (User's Guide); this
+# module returns the later revision
+:REV Rd is op11=0x001 & Rd { Rd = 0x11; }
+@else
 # REV: revision number of the TMS34010 (User's Guide example: 00000008h)
 :REV Rd is op11=0x001 & Rd { Rd = 8; }
+@endif
 
 # --- jumps ---
 :JR^CC Rel8 is op4=0xc & CC & low8!=0 & low8!=0x80 & Rel8 {
@@ -773,3 +795,6 @@ macro do_srl(r, k) {
 }
 
 @include "tms34010_gfx.sinc"
+@ifdef TMS34020
+@include "tms34020.sinc"
+@endif

@@ -4,15 +4,23 @@
 //   tests.txt lines: <name> <start-hex> <stop-hex> <init|-> <expect>
 //   init/expect items, comma separated: <reg>=<hex> or @<byte-addr-hex>:<size>=<hex> (memory,
 //   little endian). "ST" is the status register composed from the flag registers.
+//   TMS34020 coprocessor: init CPIN=<hex>:<hex>... queues the values the coprocessor returns;
+//   expect CPOUT=<hex>:<hex>... lists the values sent to it, CPCMD=<id>:<command>:<size> the last
+//   command (all hex). IDLE's wait_for_interrupt returns at once.
 //@category Testing
 
 import java.io.PrintStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 
 import ghidra.app.emulator.EmulatorHelper;
 import ghidra.app.script.GhidraScript;
+import ghidra.pcode.emulate.BreakCallBack;
+import ghidra.pcode.pcoderaw.PcodeOpRaw;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.lang.Register;
 
@@ -63,6 +71,41 @@ public class EmuCheck extends GhidraScript {
 		Address start = toAddr(Long.parseUnsignedLong(f[1], 16));
 		Address stop = toAddr(Long.parseUnsignedLong(f[2], 16));
 		EmulatorHelper emu = new EmulatorHelper(currentProgram);
+		ArrayDeque<Long> cpin = new ArrayDeque<>();
+		List<String> cpout = new ArrayList<>();
+		String[] cpcmd = { "" };
+		if (currentProgram.getLanguageID().getIdAsString().startsWith("tms34020:")) {
+		emu.registerCallOtherCallback("coprocessor_command", new BreakCallBack() {
+			@Override
+			public boolean pcodeCallback(PcodeOpRaw op) {
+				var ms = emulate.getMemoryState();
+				cpcmd[0] = String.format("%x:%x:%x", ms.getValue(op.getInput(1)),
+					ms.getValue(op.getInput(2)), ms.getValue(op.getInput(3)));
+				return true;
+			}
+		});
+		emu.registerCallOtherCallback("coprocessor_write", new BreakCallBack() {
+			@Override
+			public boolean pcodeCallback(PcodeOpRaw op) {
+				cpout.add(Long.toHexString(emulate.getMemoryState().getValue(op.getInput(2))));
+				return true;
+			}
+		});
+		emu.registerCallOtherCallback("coprocessor_read", new BreakCallBack() {
+			@Override
+			public boolean pcodeCallback(PcodeOpRaw op) {
+				Long v = cpin.poll();
+				emulate.getMemoryState().setValue(op.getOutput(), v == null ? 0 : v);
+				return true;
+			}
+		});
+		emu.registerCallOtherCallback("wait_for_interrupt", new BreakCallBack() {
+			@Override
+			public boolean pcodeCallback(PcodeOpRaw op) {
+				return true;
+			}
+		});
+		}
 		try {
 			for (int i = 0; i < 15; i++) {
 				emu.writeRegister("A" + i, 0);
@@ -73,6 +116,10 @@ public class EmuCheck extends GhidraScript {
 			if (!f[3].equals("-")) {
 				for (String kv : f[3].split(",")) {
 					String[] p = kv.split("=");
+					if (p[0].equals("CPIN")) {
+						for (String x : p[1].split(":")) cpin.add(Long.parseUnsignedLong(x, 16));
+						continue;
+					}
 					long v = Long.parseUnsignedLong(p[1], 16);
 					if (p[0].startsWith("@")) {
 						String[] as = p[0].substring(1).split(":");
@@ -103,6 +150,11 @@ public class EmuCheck extends GhidraScript {
 			StringBuilder bad = new StringBuilder();
 			for (String kv : f[4].split(",")) {
 				String[] p = kv.split("=");
+				if (p[0].equals("CPOUT") || p[0].equals("CPCMD")) {
+					String got = p[0].equals("CPCMD") ? cpcmd[0] : String.join(":", cpout);
+					if (!got.equals(p[1])) bad.append(String.format(" %s=%s (want %s)", p[0], got, p[1]));
+					continue;
+				}
 				BigInteger want = new BigInteger(p[1], 16);
 				BigInteger got;
 				if (p[0].startsWith("@")) {
