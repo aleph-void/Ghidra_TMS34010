@@ -1,1525 +1,776 @@
+# TMS34010 instruction set.
+#
+# Opcode map, operand order and text follow MAME's TMS34010 disassembler (34010dsm.cpp); which
+# opcodes are valid follows MAME's TMS34010 opcode table (34010tbl.hxx: the low four bits of every
+# opcode are never checked, so "don't care" bits are accepted where MAME accepts them).
+# Semantics follow the TMS34010 User's Guide (SPVU001A), cross-checked with MAME's core
+# (34010ops.hxx); the places where MAME differs from the manual are listed in GHIDRA-RARE.md.
+#
+# Syntax differences from MAME's disassembler (which the test normalises):
+#   JRUC/JAUC  (MAME prints JR/JA for the unconditional forms)
+#   *Rd.XY     (MAME prints *Rd,XY)
+#   MMTM/MMFM list every register (MAME compresses runs into A0-A3)
 
-define token size_word(16)
-	word 		= (0,15)
+define token opw(16)
+	op16  = (0,15)
+	op12  = (4,15)
+	op11  = (5,15)
+	op10  = (6,15)
+	op8   = (8,15)
+	op7   = (9,15)
+	op6   = (10,15)
+	op5   = (11,15)
+	op4   = (12,15)
+	rd    = (0,3)
+	rdB   = (0,3)
+	rdX   = (0,3)
+	rdXB  = (0,3)
+	rdP   = (0,3)
+	rdPB  = (0,3)
+	rf    = (4,4)
+	rs    = (5,8)
+	rsB   = (5,8)
+	k5    = (5,9)
+	f9    = (9,9)
+	b8    = (8,8)
+	sub3  = (5,7)
+	sub2  = (6,7)
+	dir10 = (10,10)
+	cc    = (8,11)
+	low8  = (0,7)
+	rel8  = (0,7) signed
+	low5  = (0,4)
+	fe5   = (5,5)
+	z7    = (7,7)
+	b4_6  = (4,6)
+	rdi   = (0,3)
+	rsi   = (5,8)
+	rd0   = (0,0)
 ;
 
-define token tok32(32)
-	imm32 		= (0,31)
-	imm32s 		= (0,31) signed
-	addr2 		= (0,31)
-	addr_byte1	= (16,31)
-	addr_byte2	= (0,23)
+# Extension words: up to four, in order. 16-bit words and 32-bit longs (LSW first).
+define token ext1(16) iw1 = (0,15) iw1s = (0,15) signed;
+define token ext2(16) iw2 = (0,15) iw2s = (0,15) signed;
+define token lng1(32) il1 = (0,31) il1lo = (0,3);
+define token lng2(32) il2 = (0,31);
+# Register lists of MMTM (bit 15 = R0) and MMFM (bit 0 = R0)
+define token rlist(16)
+	l0=(0,0) l1=(1,1) l2=(2,2) l3=(3,3) l4=(4,4) l5=(5,5) l6=(6,6) l7=(7,7)
+	l8=(8,8) l9=(9,9) l10=(10,10) l11=(11,11) l12=(12,12) l13=(13,13) l14=(14,14) l15=(15,15)
 ;
 
-define token tok16(16)
-	bits_11_15	= (11,15)		#dsjs
-	bits_10_15	= (10,15)
-	bits_10		= (10,10)		#dsjs
-	bits_12_15 	= (12,15)
-	bits_9_15	= (9,15)
-	bits_9		= (9,9) dec
-	bits_8_15	= (8,15)		#line z
-	bits_8_11 	= (8,11)
-	bits_7		= (7,7)			#line z
-	bits_6_8	= (6,8)			#setf
-	bits_5_15	= (5, 15)
-	bits_5_9	= (5,9)
-	bits_5_8_A	= (5,8)
-	bits_5_8_B	= (5,8)
-	bits_5_8	= (5,8)
-	bits_5		= (5,5) dec		#setf
-	bits_4		= (4,4)
-	bits_0_8	= (0,8)
-	bits_0_7s	= (0,7) signed
-	bits_0_6	= (0,6)			#line z
-	bits_0_3_A	= (0,3)
-	bits_0_3_B	= (0,3)
-	bits_0_15	= (0,15)
-	bits_0_15s	= (0,15) signed
-	bits_0_4	= (0,4)			# setf
+attach variables [ rd rs ]   [ A0 A1 A2 A3 A4 A5 A6 A7 A8 A9 A10 A11 A12 A13 A14 SP ];
+attach variables [ rdB rsB ] [ B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 B12 B13 B14 SP ];
+# MOVE Rs,Rd across files: the destination is in the other file
+attach variables [ rdX ]  [ B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 B12 B13 B14 SP ];
+attach variables [ rdXB ] [ A0 A1 A2 A3 A4 A5 A6 A7 A8 A9 A10 A11 A12 A13 A14 SP ];
+# Rd|1: second register of the MPYS/MPYU product and of the DIVS/DIVU dividend
+attach variables [ rdP ]  [ A1 A1 A3 A3 A5 A5 A7 A7 A9 A9 A11 A11 A13 A13 SP SP ];
+attach variables [ rdPB ] [ B1 B1 B3 B3 B5 B5 B7 B7 B9 B9 B11 B11 B13 B13 SP SP ];
 
-	bits_8_11_B = (8,11)
-	
-	#offsets
-	offset1 = (0,15)
-	offset2 = (0,15)
-;
+Rd: rd   is rf=0 & rd   { export rd; }
+Rd: rdB  is rf=1 & rdB  { export rdB; }
+Rs: rs   is rf=0 & rs   { export rs; }
+Rs: rsB  is rf=1 & rsB  { export rsB; }
+RdX: rdX  is rf=0 & rdX  { export rdX; }
+RdX: rdXB is rf=1 & rdXB { export rdXB; }
+RdP: rdP  is rf=0 & rdP  { export rdP; }
+RdP: rdPB is rf=1 & rdPB { export rdPB; }
 
 
-# =====================================================================================================================================#
-#
-# 								TABLES
-#
-# =====================================================================================================================================#
-attach variables [ bits_0_3_A ] [ A0 A1 A2 A3 A4 A5 A6 A7 A8 A9 A10 A11 A12 A13 A14 SP ];
-attach variables [ bits_0_3_B ] [ B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 B12 B13 B14 SP ];
-attach variables [ bits_5_8_A ] [ A0 A1 A2 A3 A4 A5 A6 A7 A8 A9 A10 A11 A12 A13 A14 SP ];
-attach variables [ bits_5_8_B ] [ B0 B1 B2 B3 B4 B5 B6 B7 B8 B9 B10 B11 B12 B13 B14 SP ];
+define pcodeop emulate;
 
-# Rs
-Rd: bits_0_3_A is bits_4=0 & bits_0_3_A { export bits_0_3_A; }
-Rd: bits_0_3_B is bits_4=1 & bits_0_3_B { export bits_0_3_B; }
-#Rd
-Rs: bits_5_8_A is bits_4=0 & bits_5_8_A { export bits_5_8_A; }
-Rs: bits_5_8_B is bits_4=1 & bits_5_8_B { export bits_5_8_B; }
+# =============================================================================================
+# Helpers
+# =============================================================================================
 
-Constant: bits_5_9 is bits_5_9 { export bits_5_9; }
+# Bit address -> Ghidra (byte) address of an instruction: the low four bits are ignored.
+macro codeaddr(dst, bitaddr) { dst = (bitaddr & 0xfffffff0) >> 3; }
 
-# DSJS
-addr5: fwd is bits_5_9 & bits_10 = 0 [fwd = inst_next + (bits_5_9 * 2);] {export *:4 fwd;}
-addr5: bwd is bits_5_9 & bits_10 = 1 [bwd = inst_next - (bits_5_9 * 2);] {export *:4 bwd;}
-addr8: addy is bits_0_7s [addy = inst_next + (bits_0_7s * 2);] {export *:4 addy;} 
-addr16: addy is bits_0_15s [addy = inst_next + (bits_0_15s * 2);] {export *:4 addy;}
-addr32: addy is imm32 [addy = (imm32 / 8) & 0xfffff;] {export *:4 addy;}
-
-cc: "" is bits_8_11=0  	{ local tmp:1 = 1; export tmp; }
-cc: "P"  is bits_8_11=1  { local tmp:1 = (!$(N_Flag) & !$(Z_Flag)) != 0; export tmp; }
-cc: "LS" is bits_8_11=2  { local tmp:1 = ($(C_Flag) | $(N_Flag)) != 0; export tmp; }
-cc: "HI" is bits_8_11=3  { local tmp:1 = (!$(C_Flag) & !$(N_Flag)) != 0; export tmp; }
-cc: "LT" is bits_8_11=4  { local tmp:1 = ($(N_Flag) & !$(V_Flag)) | (!$(N_Flag) & $(V_Flag)) != 0; export tmp; }
-cc: "GE" is bits_8_11=5  { local tmp:1 = ($(N_Flag) & $(V_Flag)) | (!$(N_Flag) & !$(V_Flag)) != 0; export tmp; }
-cc: "LE" is bits_8_11=6  { local tmp:1 = ($(N_Flag) & !$(V_Flag)) | (!$(N_Flag) & $(V_Flag)) | $(Z_Flag) != 0; export tmp; }
-cc: "GT" is bits_8_11=7  { local tmp:1 = ($(N_Flag) & $(V_Flag) & !$(Z_Flag)) | (!$(N_Flag) & !$(V_Flag) & !$(Z_Flag)) != 0; export tmp; }
-cc: "C"	 is bits_8_11=8  { local tmp:1 = $(C_Flag) != 0; export tmp; }
-cc: "NC" is bits_8_11=9  { local tmp:1 = !$(C_Flag) != 0; export tmp; }
-cc: "EQ" is bits_8_11=10 { local tmp:1 = $(Z_Flag) != 0; export tmp; }
-cc: "NE" is bits_8_11=11 { local tmp:1 = !$(Z_Flag) != 0; export tmp; }
-cc: "V"  is bits_8_11=12 { local tmp:1 = $(V_Flag) != 0; export tmp; }
-cc: "NV" is bits_8_11=13 { local tmp:1 = !$(V_Flag) != 0; export tmp; }
-cc: "N"  is bits_8_11=14 { local tmp:1 = $(N_Flag) != 0; export tmp; }
-cc: "NN" is bits_8_11=15 { local tmp:1 = !$(N_Flag) != 0; export tmp; }
-
-
-
-# =====================================================================================================================================#
-#
-# 								MACROS
-#
-# =====================================================================================================================================#
-macro Update_N_Flag(N)
-{
-	$(N_Flag) = N < 0;
+# Field read: sz is the field size register (0 means 32), ext 1 = sign extend.
+macro rfield(res, addr, sz, ext) {
+	local ba:4 = addr >> 3;
+	local sh:8 = zext(addr & 7);
+	local n:8 = zext(sz) + zext(sz == 0) * 32;
+	local w:5 = *:5 ba;
+	local v:8 = (zext(w) >> sh) & ((1:8 << n) - 1);
+	local sb:8 = 1:8 << (n - 1);
+	v = v - zext(ext != 0) * ((v & sb) << 1);
+	res = v:4;
 }
 
-macro Update_C_Flag(C)
-{
-	
+# Field write of the low sz bits of val (sz 0 means 32).
+macro wfield(addr, sz, val) {
+	local ba:4 = addr >> 3;
+	local sh:8 = zext(addr & 7);
+	local n:8 = zext(sz) + zext(sz == 0) * 32;
+	local m:8 = ((1:8 << n) - 1) << sh;
+	local w:8 = zext(*:5 ba);
+	w = (w & ~m) | ((zext(val) << sh) & m);
+	*:5 ba = w:5;
 }
 
-macro Update_Z_Flag(Z)
-{
-	$(Z_Flag) = Z == 0;
+# Field size in bits as a 4-byte value (1..32).
+macro fieldbits(res, sz) { res = zext(sz) + zext(sz == 0) * 32; }
+
+# Byte read (sign extended to 32 bits) and write at any bit address.
+macro rbyte(res, addr) {
+	local w:2 = *:2 (addr >> 3);
+	local b:2 = w >> (addr & 7);
+	res = sext(b:1);
+}
+macro wbyte(addr, val) {
+	local ba:4 = addr >> 3;
+	local sh:2 = zext(addr:1 & 7);
+	local m:2 = 0xff << sh;
+	local w:2 = *:2 ba;
+	w = (w & ~m) | ((zext(val:1) << sh) & m);
+	*:2 ba = w;
 }
 
+# 32-bit stack and register-list transfers. The pointer is assumed to be a multiple of 8 bits.
+macro push32(val) { SP = SP - 32; *:4 (SP >> 3) = val; }
+macro pop32(res)  { res = *:4 (SP >> 3); SP = SP + 32; }
 
-macro Update_V_Flag(V)
-{
-	
+macro getst(res) {
+	res = (zext(N) << 31) | (zext(C) << 30) | (zext(Z) << 29) | (zext(V) << 28) |
+	      (zext(PBX) << 25) | (zext(IE) << 21) | (zext(FE1) << 11) | (zext(FS1) << 6) |
+	      (zext(FE0) << 5) | zext(FS0) | STX;
+}
+macro putst(val) {
+	local v:4 = val;
+	N = v[31,1]; C = v[30,1]; Z = v[29,1]; V = v[28,1];
+	PBX = v[25,1]; IE = v[21,1];
+	FE1 = v[11,1]; FS1 = v[6,5]; FE0 = v[5,1]; FS0 = v[0,5];
+	STX = v & 0x0ddff000;
+}
+# ST after reset, traps and interrupts: 00000010h
+macro resetst() {
+	N = 0; C = 0; Z = 0; V = 0; PBX = 0; IE = 0; FE1 = 0; FS1 = 0; FE0 = 0; FS0 = 0x10; STX = 0;
 }
 
+macro setnz(r) { N = r s< 0; Z = r == 0; }
 
-# =====================================================================================================================================#
-#
-# 								SUBTABLES
-#
-# =====================================================================================================================================#
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# ABS Rd						Store Absolute Value																0000 0011 100R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:ABS Rd is bits_5_15=0b00000011100 & Rd
-{
-	if(Rd > 0x80000000) goto <OVERFLOW>; #
-	if(Rd == 0) goto <ZERO>;
-	if(Rd < 0) goto <MAKE_POS>;
-	
-	#<POS>
-	$(N_Flag) = 1;
-	$(Z_Flag) = 0;
-	
-	
-	<ZERO>
-	$(N_Flag) = 0;
-	$(Z_Flag) = 1;
-	
-	
-	<OVERFLOW>
-	$(V_Flag) = 1;
-	
-	<MAKE_POS>
-	Rd = 0 - Rd;
-	
-	$(N_Flag) = 0; # set flag since original value was neg
+# a + b (+ cin): C is the carry out of bit 31, V the signed overflow
+macro addflags(a, b, r) {
+	C = carry(a, b);
+	V = ((~(a ^ b) & (a ^ r)) >> 31) != 0;
+	setnz(r);
+}
+# a - b (- cin): C is the borrow
+macro subflags(a, b, r) {
+	C = a < b;
+	V = (((a ^ b) & (a ^ r)) >> 31) != 0;
+	setnz(r);
 }
 
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# ADD Rs,Rd						Add Registers																		0100 000S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:ADD Rs,Rd is bits_9_15=0b0100000 & Rs & Rd
-{
+# XY halves (X = bits 15-0, Y = bits 31-16, both signed)
+macro getx(res, r) { res = r:2; }
+macro gety(res, r) { res = r(2); }
+macro setxy(r, x, y) { r = (zext(y) << 16) | zext(x); }
+
+# =============================================================================================
+# Operand tables
+# =============================================================================================
+
+FS: is f9=0 { export FS0; }
+FS: is f9=1 { export FS1; }
+FE: is f9=0 { export FE0; }
+FE: is f9=1 { export FE1; }
+F: "0" is f9=0 { }
+F: "1" is f9=1 { }
+
+# Constant 1-32 (ADDK/SUBK/MOVK)
+K32: "0x20" is k5=0 { export 32:4; }
+K32: k5 is k5 { export *[const]:4 k5; }
+SetFS: "0x20" is low5=0 { }
+SetFS: low5 is low5 { }
+
+# PC-relative targets
+Rel8: tgt is rel8 [ tgt = inst_next + rel8 * 2; ] { export *[ram]:4 tgt; }
+Rel16: tgt is iw1s [ tgt = inst_next + iw1s * 2; ] { export *[ram]:4 tgt; }
+Abs32: tgt is il1 [ tgt = (il1 & 0xfffffff0) >> 3; ] { export *[ram]:4 tgt; }
+DsjsTgt: tgt is dir10=0 & k5 [ tgt = inst_next + k5 * 2; ] { export *[ram]:4 tgt; }
+DsjsTgt: tgt is dir10=1 & k5 [ tgt = inst_next - k5 * 2; ] { export *[ram]:4 tgt; }
+
+# Absolute data addresses (bit addresses)
+SAbs: "@"^il1 is il1 { export *[const]:4 il1; }
+DAbs2: "@"^il2 is il2 { export *[const]:4 il2; }
+DAbs: "@"^il1 is il1 { export *[const]:4 il1; }
+
+# Condition codes
+CC: "UC" is cc=0  { export 1:1; }
+CC: "P"  is cc=1  { local t:1 = !N && !Z; export t; }
+CC: "LS" is cc=2  { local t:1 = C || Z; export t; }
+CC: "HI" is cc=3  { local t:1 = !C && !Z; export t; }
+CC: "LT" is cc=4  { local t:1 = N != V; export t; }
+CC: "GE" is cc=5  { local t:1 = N == V; export t; }
+CC: "LE" is cc=6  { local t:1 = (N != V) || Z; export t; }
+CC: "GT" is cc=7  { local t:1 = (N == V) && !Z; export t; }
+CC: "C"  is cc=8  { export C; }
+CC: "NC" is cc=9  { local t:1 = !C; export t; }
+CC: "EQ" is cc=10 { export Z; }
+CC: "NE" is cc=11 { local t:1 = !Z; export t; }
+CC: "V"  is cc=12 { export V; }
+CC: "NV" is cc=13 { local t:1 = !V; export t; }
+CC: "N"  is cc=14 { export N; }
+CC: "NN" is cc=15 { local t:1 = !N; export t; }
+
+@include "tms34010_mm.sinc"
+
+# =============================================================================================
+# Arithmetic, logical and compare
+# =============================================================================================
+
+:ABS Rd is op11=0x01c & Rd {
+	local r:4 = 0 - Rd;
+	N = r s< 0; Z = r == 0; V = r == 0x80000000;
+	if (r s<= 0) goto <done>;
+	Rd = r;
+<done>
+}
+
+:ADD Rs,Rd is op7=0x20 & Rs & Rd {
+	local a:4 = Rs; local b:4 = Rd; local r:4 = a + b;
+	addflags(a, b, r); Rd = r;
+}
+
+:ADDC Rs,Rd is op7=0x21 & Rs & Rd {
+	local a:4 = Rs; local b:4 = Rd; local s:4 = a + b; local r:4 = s + zext(C);
+	local cout:1 = carry(a, b) || carry(s, zext(C));
+	addflags(a, b, r); C = cout; Rd = r;
+}
+
+:ADDI iw1s,Rd is op11=0x058 & Rd; iw1s {
+	local a:4 = iw1s; local b:4 = Rd; local r:4 = a + b;
+	addflags(a, b, r); Rd = r;
+}
+
+:ADDI il1,Rd is op11=0x059 & Rd; il1 {
+	local a:4 = il1; local b:4 = Rd; local r:4 = a + b;
+	addflags(a, b, r); Rd = r;
+}
+
+:ADDK K32,Rd is op6=0x04 & K32 & Rd {
+	local a:4 = K32; local b:4 = Rd; local r:4 = a + b;
+	addflags(a, b, r); Rd = r;
+}
+:INC Rd is op6=0x04 & k5=1 & Rd {
+	local b:4 = Rd; local r:4 = b + 1;
+	addflags(1:4, b, r); Rd = r;
+}
+
+:AND Rs,Rd is op7=0x28 & Rs & Rd { Rd = Rd & Rs; Z = Rd == 0; }
+:ANDN Rs,Rd is op7=0x29 & Rs & Rd { Rd = Rd & ~Rs; Z = Rd == 0; }
+:OR Rs,Rd is op7=0x2a & Rs & Rd { Rd = Rd | Rs; Z = Rd == 0; }
+:XOR Rs,Rd is op7=0x2b & Rs & Rd { Rd = Rd ^ Rs; Z = Rd == 0; }
+
+# ANDI stores the 1s complement of the mask (the assembler's ANDNI stores it as written)
+:ANDI val,Rd is op11=0x05c & Rd; il1 [ val = ~il1 & 0xffffffff; ] { Rd = Rd & ~il1; Z = Rd == 0; }
+:ORI il1,Rd is op11=0x05d & Rd; il1 { Rd = Rd | il1; Z = Rd == 0; }
+:XORI il1,Rd is op11=0x05e & Rd; il1 { Rd = Rd ^ il1; Z = Rd == 0; }
+:NOT Rd is op11=0x01f & Rd { Rd = ~Rd; Z = Rd == 0; }
+
+# BTST K: the opcode holds the 1s complement of the bit number
+:BTST bit,Rd is op6=0x07 & k5 & Rd [ bit = 31 - k5; ] {
+	Z = ((Rd >> bit) & 1) == 0;
+}
+:BTST Rs,Rd is op7=0x25 & Rs & Rd { Z = ((Rd >> (Rs & 31)) & 1) == 0; }
+
+:CMP Rs,Rd is op7=0x24 & Rs & Rd {
+	local a:4 = Rd; local b:4 = Rs; local r:4 = a - b;
+	subflags(a, b, r);
+}
+# CMPI stores the 1s complement of the value
+:CMPI val,Rd is op11=0x05a & Rd; iw1 [ val = (~iw1 & 0xffff) - 2 * ((~iw1) & 0x8000); ] {
+	local a:4 = Rd; local b:4 = sext(~iw1:2); local r:4 = a - b;
+	subflags(a, b, r);
+}
+:CMPI val,Rd is op11=0x05b & Rd; il1 [ val = ~il1 & 0xffffffff; ] {
+	local a:4 = Rd; local b:4 = ~il1; local r:4 = a - b;
+	subflags(a, b, r);
+}
+
+# DIVS/DIVU: with an even Rd the dividend is the 64-bit Rd:Rd+1 (quotient to Rd, remainder to
+# Rd+1); with an odd Rd it is Rd alone. On overflow or division by 0 only V is set.
+:DIVS Rs,Rd is op7=0x2c & Rs & Rd & RdP & rd0=0 {
+	N = 0; Z = 0; V = 0;
+	local d:4 = Rs;
+	if (d == 0) goto <ovf>;
+	local dividend:8 = (sext(Rd) << 32) | zext(RdP);
+	local q:8 = dividend s/ sext(d);
+	local rem:8 = dividend s% sext(d);
+	if (q != sext(q:4)) goto <ovf>;
+	Rd = q:4; RdP = rem:4;
+	setnz(Rd);
 	goto inst_next;
+<ovf>
+	V = 1;
 }
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# ADD Rs,Rd						Add Registers with Carry															0100 001S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:ADDC Rs,Rd is bits_9_15=0b0100001 & Rs & Rd
-{
+:DIVS Rs,Rd is op7=0x2c & Rs & Rd & rd0=1 {
+	N = 0; Z = 0; V = 0;
+	local d:4 = Rs;
+	if (d == 0) goto <ovf>;
+	if (Rd == 0x80000000 && d == 0xffffffff) goto <ovf>;
+	Rd = Rd s/ d;
+	setnz(Rd);
 	goto inst_next;
+<ovf>
+	V = 1;
 }
 
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# ADDI IW						Add Immediate (16-bytes)															0000 1011 000R DDDD					
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:ADDI word,Rd is bits_5_15=0b00001011000 & Rd; word
-{
+:DIVU Rs,Rd is op7=0x2d & Rs & Rd & RdP & rd0=0 {
+	Z = 0; V = 0;
+	local d:4 = Rs;
+	if (d == 0) goto <ovf>;
+	local dividend:8 = (zext(Rd) << 32) | zext(RdP);
+	local q:8 = dividend / zext(d);
+	local rem:8 = dividend % zext(d);
+	if (q > 0xffffffff) goto <ovf>;
+	Rd = q:4; RdP = rem:4;
+	Z = Rd == 0;
 	goto inst_next;
+<ovf>
+	V = 1;
 }
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# ADDI IL						Add Immediate (32-bytes)															0000 1011 001R DDDD					
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:ADDI link,Rd is bits_5_15=0b00001011001 & Rd; imm32 [link=(imm32 / 8) & 0xfffff;]
-{
-	Rd = link;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# ADDK K,Rd						Add Constant (5-bits)																0001 00KK KKKR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:ADDK Constant,Rd is bits_10_15=0b000100 & Constant & Rd
-{
-	Rd = Rd + Constant;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# ADDXY Rs,Rd					Add Registers in XY Mode															1110 000S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:ADDXY Rs,Rd is bits_9_15=0b1110000 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# AND Rs,Rd						AND Registers																		0101 000S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:AND Rs,Rd is bits_9_15=0b0101000 & Rs & Rd
-{
-	Rd = Rs & Rd;
-	
-	if(Rd==0) goto <SET_Z_FLAG>;
-	
-	$(Z_Flag) = 0;
+:DIVU Rs,Rd is op7=0x2d & Rs & Rd & rd0=1 {
+	Z = 0; V = 0;
+	local d:4 = Rs;
+	if (d == 0) goto <ovf>;
+	Rd = Rd / d;
+	Z = Rd == 0;
 	goto inst_next;
-	
-	<SET_Z_FLAG>
-	$(Z_Flag) = 1;
+<ovf>
+	V = 1;
 }
 
+:LMO Rs,Rd is op7=0x35 & Rs & Rd {
+	local s:4 = Rs;
+	Z = s == 0;
+	local lz:4 = lzcount(s);
+	Rd = zext(s != 0) * lz;
+}
 
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# ANDN Rs,Rd					AND Registers with Compliment														0101 001S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:ANDN Rs,Rd is bits_9_15=0b0101001 & Rs & Rd
-{
-	Rd = ~Rs & Rd; 
-	
-	# set flags
-	if(Rd==0) goto <SET_Z_FLAG>;
-	
-	$(Z_Flag) = 0;
+:MODS Rs,Rd is op7=0x36 & Rs & Rd {
+	N = 0; Z = 0; V = 0;
+	if (Rs == 0) goto <ovf>;
+	if (Rs == 0xffffffff) goto <m1>;
+	Rd = Rd s% Rs;
+	setnz(Rd);
 	goto inst_next;
-	
-	<SET_Z_FLAG>
-	$(Z_Flag) = 1;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# ANDI IL,Rd					AND Immediate (32-bits)																0000 1011 100R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:ANDI IL,Rd is bits_5_15=0b00001011100 & Rd; imm32s
-[IL=~imm32s;]
-{
+<m1>
+	Rd = 0; Z = 1;
 	goto inst_next;
+<ovf>
+	V = 1;
 }
 
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# ANDNI IL,Rd					AND NOT Immediate (32-bits)															0000 1011 101R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# pattern might be wrong as ANDNI is the same as ANDI, error in manual?
-#:ANDNI imm32,Rd is bits_5_15=0b00001011101 & Rd; imm32
-#{
-	
-#}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-#BTST 4h,a0						Test Register Bit, Constant															0001 11KK KKKR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:BTST K,Rd is bits_10_15=0b000111 & bits_5_9 & Rd [ K=~bits_5_9 & 0x1f; ]
- {
- 	goto inst_next;
- }
-	 
-	 
-# -------------------------------------------------------------------------------------------------------------------------------------#
-#BTST Rs,Rd						Test Register Bit, Register															0100 101S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:BTST Rs,Rd is bits_9_15=0b0100101 & Rs & Rd
- {
- 	goto inst_next;
- }
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# CALL Rd						Call Register																		0000 1001 001R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:CALL Rd is bits_5_15=0b00001001001 & Rd
-{
-	call Rd;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# CALLA	FF805000				Call Absolute Address																0000 1101 0101 1111
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:CALLA addr32 is word=0x0D5F; addr32
-{
-	call addr32;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# CALLR FF805000	Call Relative Address									0000  1101 0011 1111
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:CALLR addr16 is bits_0_15=0x0D3F; addr16
-{ 
-	
-	call addr16;
-
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# CLR Rd					Clear Register									0101 011D DDDR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:CLR Rd is bits_9_15=0b0101011 & bits_5_8_A & Rd
-{
-	#XOR itself to clear+
-	# Rd = Rd ^ Rd;
-	Rd = 0;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# CLRC							Clear Carry																			0000 0011 0010 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:CLRC is word=0x320 [ C=1; globalset(inst_next,C); ]
-{
+:MODU Rs,Rd is op7=0x37 & Rs & Rd {
+	Z = 0; V = 0;
+	if (Rs == 0) goto <ovf>;
+	Rd = Rd % Rs;
+	Z = Rd == 0;
 	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# CMP Rs,Rd						Compare Registers																	0100 100S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:CMP Rs, Rd is bits_9_15=0b0100100 & Rs & Rd
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# CMPI							Compare Immediate (16-bits)															0000 1011 010R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:CMPI IW,Rd is bits_5_15=0b00001011010 & Rd; bits_0_15s
-[IW = ~bits_0_15s;]
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# CMPI							Compare Immediate (32-bits)															0000 1011 011R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:CMPI IL,Rd is bits_5_15=0b00001011011 & Rd; imm32s
-[IL = ~imm32s;]
-{
-
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# CMPXY Rs,Rd					Compare X and Y halves of Registers													1110 010S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:CMPXY Rs,Rd is bits_9_15=0b1110010 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# CPW Rs,Rd						Compare Point to Window																1110 011S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:CMPW Rs,Rd is bits_9_15=0b1110011 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# CVXYL Rd,Rs					Convert XY Address to Linear Address												1110 100S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:CVXYL Rd,Rs is bits_9_15=0b1110100 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# DEC Rd						Decrement Register																	0001 0100 001R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:DEC Rd is bits_5_15=0b00010100001 & Rd
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# Disable Interrupts
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:DINT is word = 0x0360
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# DIVS Rs,Rd					Divide Registers Signed																0101 100S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:DIVS Rs,Rd is bits_9_15=0b0101100 & Rs & Rd
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# DIVU Rs,Rd					Divide Registers Unsigned															0101 101S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:DIVU Rs,Rd is bits_9_15=0b0101101 & Rs & Rd
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# DRAV Rs,Rd					Draw and Advance																	1111 011S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:DRAV Rs,Rd is bits_9_15=0b1111011 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# DSJ Rd,Address				Decrement Register and skip															0000 1101 100R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:DSJ Rd,addr16 is bits_5_15=0b00001101100 & Rd; addr16
-{
-		Rd = Rd -1;
-		if ( Rd != 0) goto addr16;		
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# DSJEQ Rd,Address				Conditionally Decrement Register and skip											0000 1101 101R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:DSJEQ Rd,addr16 is bits_5_15=0b00001101101 & Rd; addr16
-{
-		if($(Z_Flag)==0) goto inst_next;
-		
-		Rd = Rd -1;
-		
-		if ( Rd != 0) goto addr16;		
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# DSJEQ Rd,Address				Conditionally Decrement Register and skip											0000 1101 110R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:DSJNE Rd,addr16 is bits_5_15=0b00001101110 & Rd; addr16
-{
-		if($(Z_Flag)==1) goto inst_next;
-		
-		Rd = Rd -1;
-		
-		if ( Rd != 0) goto addr16;		
-}
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# DSJS Rd,Address				Decrement Register and skip jump short.												0011 1DKK KKKR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:DSJS Rd,addr5 is bits_11_15=0b00111 & addr5 & Rd
-{
-		Rd = Rd -1;
-		if ( Rd != 0) goto addr5;		
-}
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# Enable Interrupts
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:EINT is word = 0x0D60
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# EMU							Initiate Emulation																	0000 0001 0000 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:EMU is bits_0_15=0x100
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# EXGF Rd,F						Exchange Field Size																	1101 01F1 000R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:EXGF Rd,bits_9 is bits_10_15=0b110101 & bits_9 & bits_5_8=0b1000 & Rd
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# EXGPC Rd						Exchange Program Counter with Register												0000 0001 001R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:EXGPC Rd is bits_5_15=0b00000001001 & Rd
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# FILL L						Fill Array with processed pixels, Linear											0000 1111 1100 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:FILL_L is bits_0_15=0xfc0
-{
-	#
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# FILL XY						Fill Array with processed pixels, XY												0000 1111 1110 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:FILL_XY is bits_0_15=0xfe0
-{
-	#
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# GETPC	Rd						Get Program Counter into Register													0000 0001 010R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:GETPC Rd is bits_5_15=0b00000001010 & Rd
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# GETST Rd						Get Status Register into Register													0000 0001 100R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:GETST Rd is bits_5_15=0b00000001100 & Rd
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# INC Rd						Increment Register																	0001 0000 001R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:INC Rd is bits_5_15=0b00010000001 & Rd
-{
-	goto inst_next;
-}
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# JAcc Address					Absolute Address Conditional														1100 cond 1000 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:JA^cc addr32 is cc & bits_12_15=0b1100 &  bits_0_7s=0b10000000; addr32
-{
-	if (cc) goto addr32;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-#JRcc Address					Jump Relative Conditonal Long														1100 cond 0000 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:JR^cc addr16 is cc & bits_12_15=0b1100 & bits_0_7s=0; addr16
-{
-	if(cc) goto addr16;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-#JRcc Address					Jump Relative Conditional Short														1100 cond xxxx xxxx
-# -------------------------------------------------------------------------------------------------------------------------------------#
-#attach names [ bits_8_11_B ] [ UC P LS HI LT GE LE GT C NC EQ NE V NV N NN ];
-:JR^cc addr8 is cc & bits_12_15=0b1100 & addr8
-{
-	if(cc) goto addr8;
-}
-
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# JUMP Rd						Jump Indirect																		0000 0001 011R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# Will throw errors since register won't natively have a valid address.
-:JUMP Rd is bits_5_15=0b00000001011 & Rd
-{
-	goto Rd;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# LINE Z						Line Draw																			1101 1111 Z001 1010
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:LINE bits_7 is bits_8_15=0b11011111 & bits_7 & bits_0_6=0b0011010
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# LMO Rs,Rd						Leftmost One																		0110 101S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:LMO Rs,Rd is bits_9_15=0b0110101 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MMTM Rs,List					Move Multiple Registers To Memory													0000 1001 100R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-#SP A14 A13 A12 A11 A10 A9 A8 A7 A6 A5 A4 A3 A2 A1 AO
-:MMTM Rd,bits_0_15 is bits_5_15=0b00001001100 & Rd; bits_0_15
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MMFM Rs,List					Move Multiple Registers From Memory													0000 1001 101R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MMFM Rd,bits_0_15 is bits_5_15=0b00001001101 & Rd; bits_0_15
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MODS Rs,Rd					Modulus Signed																		0110 110S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MODS Rs,Rd is bits_9_15=0b0110110 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MODU Rs,Rd					Modulus Unsigned																	0110 111S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MODU Rs,Rd is bits_9_15=0b0110111 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MPYS Rs,Rd					Multiply Registers (Signed)															0101 110S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MPYS Rs,Rd is bits_9_15=0b0101110 & Rs & Rd
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MPYU Rs,Rd					Multiply Registers (Unsigned)														0101 111S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MPYU Rs,Rd is bits_9_15=0b0101111 & Rs & Rd
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVB Rs,*Rd					Move Byte - Register to Indirect													1000 110S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVB Rs,*Rd is bits_9_15=0b1000110 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVB *Rs,Rd					Move Byte - Indirect to Register													1000 111S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVB *Rs,Rd is bits_9_15=0b1000111 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVB *Rs,*Rd					Move Byte - Indirect to Indirect													1001 110S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVB *Rs,*Rd is bits_9_15=0b1001110 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVB *Rs,*Rd(Disp)			Move Byte - Indirect to Indirect with Displacement									1010 110S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVB *Rs,*Rd(offset2) is bits_9_15=0b1010110 & Rs & Rd; offset2
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVB *Rs(Disp,*Rd			Move Byte - Indirect with Displacement to Indirect										1010 111S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVB *Rs(offset1),*Rd is bits_9_15=0b1010111 & Rs & Rd; offset1
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVB *Rs(Disp),*Rd(Disp)			Move Byte - Indirect with Displacement to Indirect with Displacement			1011 110S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVB *Rs(offset1),*Rd(offset2) is bits_9_15=0b1011110 & Rs & Rd; offset1; offset2
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVB Rs,@DAddress					Move Byte - Register to Absolute												0000 0101 111R SSSS
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVB Rd,imm32 is bits_5_15=0b00000101111 & Rd; imm32
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVB @SAddress,Rd					Move Byte - Absolute to Register												0000 0111 111R SSSS
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVB imm32,Rd is bits_5_15=0b00000111111 & Rd; imm32
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVB @SAddress,@DAddress			Move Byte - Absolute to Absolute												0000 0011 0100 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVB imm32,@addr2 is word=0x340; imm32;addr2
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE Rs,Rd					Move Register to Register															0100 11MS SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE Rs,Rd is bits_10_15=0b010011 & bits_9 & Rd & bits_4 & Rs
-{
-	Rs = Rd;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE Rs,*Rd,F					Move Field - Register to Indirect													1000 00FS SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE Rs, *Rd, bits_9 is bits_10_15=0b100000 & bits_9 & Rd & bits_4 & Rs
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE Rs,-*Rd,F				Move Field - Register to Indirect(Predecrement)										1010 00FS SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE Rs, -*Rd, bits_9 is bits_10_15=0b101000 & bits_9 & Rd & bits_4 & Rs
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE Rs,*Rd+,F				Move Field - Register to Indirect(Post Inc)											1001 00FS SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE Rs, *Rd+, bits_9 is bits_10_15=0b100100 & bits_9 & Rd & bits_4 & Rs
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE *Rs,Rd,F					Move Field - Indirect to Register													1000 01FS SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE *Rs, Rd, bits_9 is bits_10_15=0b100001 & bits_9 & Rd & bits_4 & Rs
-{
-	Rs = *[register]Rd;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE -*Rs,Rd,F				Move Field - Indirect (Pre Inc) to Register											1010 01FS SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE -*Rs, Rd, bits_9 is bits_10_15=0b101001 & bits_9 & Rd & bits_4 & Rs
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE *Rs+,Rd,F				Move Field - Indirect (Post Inc) to Register										1001 01FS SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE *Rs+, Rd, bits_9 is bits_10_15=0b100101 & bits_9 & Rd & bits_4 & Rs
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE *Rs,*Rd,F				Move Field - Indirect to Indirect													1000 10FS SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE *Rs, *Rd, bits_9 is bits_10_15=0b100010 & bits_9 & Rd & bits_4 & Rs
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE -*Rs,-*Rd,F				Move Field - Indirect(Predecrement) to Indirect(Predecrement)						1010 10FS SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE -*Rs, -*Rd, bits_9 is bits_10_15=0b101010 & bits_9 & Rd & bits_4 & Rs
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE *Rs+,*Rd+,F				Move Field - Indirect(Postincrement) to Indirect(Postincrement)						1010 10FS SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE *Rs+, *Rd+, bits_9 is bits_10_15=0b100110 & bits_9 & Rd & bits_4 & Rs
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE Rs,*Rd(Disp),F			Move Field - Register to Indirect(Displacement)										1011 00FS SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE Rs, *Rd(offset2), bits_9 is bits_10_15=0b101100 & bits_9 & Rd & bits_4 & Rs;
-offset2
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE *Rs(Disp),Rd,F			Move Field - Indirect(Displacement) to Register										1011 01FS SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE *Rs(offset1), Rd, bits_9 is bits_10_15=0b101101 & bits_9 & Rd & bits_4 & Rs;
-offset1
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE *Rs(Disp),*Rd+,F			Move Field - Indirect(Displacement) to Indirect (Post Increment)					1101 00FS SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE *Rs(offset1), *Rd+, bits_9 is bits_10_15=0b110100 & bits_9 & Rs & Rd;
-offset1
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE *Rs(Disp),*Rd(Disp),F	Move Field - Indirect(Displacement) to Indirect (Displacement)						1011 10FS SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE *Rs(offset1), *Rd(offset2), bits_9 is bits_10_15=0b101110 & bits_9 & Rs & Rd;
-offset1; offset2
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE Rs,@DAddress,F			Move Field - Register to Absolute													0000 01F1 100R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE Rd,@^imm32,bits_9 is bits_10_15=0b000001 & bits_9 & bits_5_8=0b1100 & Rd;
-imm32
-{
-	*[ram]:4 Rd = imm32:4;
-	#goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE @SAddress,Rd,F			Move Field - Absolute to Register													0000 01F1 101R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE @^imm32,Rd,bits_9 is bits_10_15=0b000001 & bits_9 & bits_5_8=0b1101 & Rd;
-imm32
-{
-	#if(bits_9 == 1) goto <LWORD>;
-	#Rd = *[ram] imm32;
-	#goto inst_next;
-	
-	#<LWORD>
-	Rd = *[ram]:4 imm32:4;
-
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE @SAddress,*Rd+,F			Move Field - Absolute to Indirect (Postincrement)									1101 01F0 000R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVE imm32,*Rd+,bits_9 is bits_10_15=0b110101 & bits_9 & bits_5_8=0b0000 & Rd;
-imm32
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVE @SAddress,@DAddress,F	Move Field - Absolute to Absolute													0000 01F1 1100 DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# TODO: Error: Equal constraint is impossible to match: for table "instruction" constructor from tms34010.slaspec:881
-:MOVE imm32,@addr2,bits_9 is bits_10_15=0b000001 & bits_9 & bits_0_8=0b111000000;
-imm32; addr2
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVI IW,Rd					Move Immediate (16-bits)															0000 1001 110R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVI bits_0_15,Rd is bits_5_15=0b00001001110 & Rd; bits_0_15
-{ 
-	Rd = bits_0_15;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVI IL,Rd					Move Immediate (32-bits)															0000 1001 111R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-#:MOVI link,Rd is bits_5_15=0b00001001111 & Rd; imm32 [link=(imm32 / 8) & 0xfffff;]
-#:MOVI link,Rd is bits_5_15=0b00001001111 & Rd; addr_byte1 & addr_byte2 [link=(addr_byte1 << 0x10 | addr_byte2);]
-:MOVI imm32,Rd is bits_5_15=0b00001001111 & Rd; imm32 
-#! fix me !
-{
-	Rd = imm32;
-}
-
-
-#addr_byte1	= (24,31)
-#addr_byte2 = (0,23)
-
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVK 1h,A1					Move Constant																		0001 10KK KKKR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVK Constant,Rd is bits_10_15=0b000110 & Constant & Rd
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVX Rs,Rd					Move X half of register																1110 110S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVX Rs,Rd is bits_9_15=0b1110110 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# MOVY Rs,Rd					Move Y half of register																1110 111S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:MOVY Rs,Rd is bits_9_15=0b1110111 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# NEG Rd						Negate Register																		0000 0011 101R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:NEG Rd is bits_5_15=0b00000011101 & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# NEG Rd						Negate Register	with Borrow															0000 0011 110R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:NEGB Rd is bits_5_15=0b00000011110 & Rd
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# No Operation
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:NOP is word = 0x300
-{
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# NOT Rd						Not Register																		0000 0011 111R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:NOT Rd is bits_5_15=0b00000011111 & Rd
-{
-	#done
-	Rd = ~Rd;
-	Update_Z_Flag(Rd);
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# OR Rs,Rd					OR Registers																		0101 010S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:OR Rs,Rd is bits_9_15=0b0101010 & Rs & Rd
-{
-	#done
-	Rd = Rs | Rd;
-	Update_Z_Flag(Rd);
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# ORI L,Rd						OR Immediate (32-bits)																0000 1011 101R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:ORI imm32,Rd is bits_5_15=0b00001011101 & Rd; imm32
-{
-	#done
-	Rd = Rd | imm32;
-	Update_Z_Flag(Rd);
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# PIXBLT B,L					Pixel Block transfer, binary to linear												0000 1111 1000 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:PIXBLT_B_L is bits_0_15=0xf80
-{
-	#
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# PIXBLT B,XY					Pixel Block transfer, and expand, binary to XY										0000 1111 1010 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:PIXBLT_B_XY is bits_0_15=0xfa0
-{
-	#
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# PIXBLT L,L					Pixel Block transfer, linear to linear												0000 1111 0000 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:PIXBLT_L_L is bits_0_15=0xf00
-{
-	#
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# PIXBLT L,XY					Pixel Block Transfer, linear to XY													0000 1111 0010 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:PIXBLT_L_XY is bits_0_15=0xf20
-{
-	#
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# PIXBLT XY,L					Pixel Block Transfer, XY to linear													0000 1111 0100 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:PIXBLT_XY_L is bits_0_15=0xf40
-{
-	#
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# PIXBLT XY,XY					Pixel Block Transfer, XY to XY														0000 1111 0110 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:PIXBLT_XY_XY is bits_0_15=0xf60
-{
-	#
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# PIXT Rs,*Rd					Pixel Transfer - Register to Indirect												1111 100S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:PIXT Rs,*Rd is bits_9_15=0b1111100 & Rs & Rd
-{
-	#
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# PIXT Rs,*Rd.XY				Pixel Transfer - Register to Indirect.XY											1111 000S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:PIXT Rs,*Rd XY is bits_9_15=0b1111000 & Rs & Rd [XY = epsilon;]
-{
-	#
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# PIXT *Rs,Rd					Pixel Transfer - Indirect to Register												1111 101S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:PIXT *Rs,Rd is bits_9_15=0b1111101 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# PIXT *Rs,*Rd					Pixel Transfer - Indirect to Indirect												1111 110S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:PIXT *Rs,*Rd is bits_9_15=0b1111110 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# PIXT *Rs XY,Rd				Pixel Transfer - Indirect XY to Register											1111 001S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:PIXT *Rs XY,Rd is bits_9_15=0b1111001 & Rs & Rd [XY = epsilon;]
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# PIXT *Rs XY,*Rd XY			Pixel Transfer - Indirect XY to Indirect XY											1111 010S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:PIXT *Rs XY,*Rd xy is bits_9_15=0b1111010 & Rs & Rd [XY = epsilon; xy = epsilon;]
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# POPST							Pop Register Status on Stack														0000 0001 1100 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:POPST is word=0x01c0
-{
-	#done
-	ST = *SP;
-	SP = SP + 0x20;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# PUSHST						Push Register Status on Stack														0000 0001 1110 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:PUSHST is word=0x01e0
-{
-	#done
-	SP = SP - 0x20;
-	*SP = ST;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# PUTST Rs						Copy Register into Status															0000 0001 101R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:PUTST Rd is bits_5_15=0b00000001101 & Rd
-{
-	#done
-	ST = Rd;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# RL K,Rd						Rotate Left - Constant																0011 00KK KKKR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:RL Constant,Rd is bits_10_15=0b001100 & Constant & Rd
-{
-	Rd = (Rd << Constant)|(Rd >> (32 - Constant));
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# RL Rs,Rd						Rotate Left - Register																0110 10SS SSSR DDDD*
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:RL Rs,Rd is bits_9_15=0b0110100 & Rs & Rd
-{
-	Rd = (Rd << Rs)|(Rd >> (32 - Rs));
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# RETS							Return From Subroutine
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:RETS is word = 0x0960
-{ 
- 	return [SP];
- 	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# RETI							Return from Interrupt
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:RETI is word = 0x0940
-{ 
-	return [SP];
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SETC							Set Carry																			0000 1101 1110 0000
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SETC is word = 0xde0 [ C=1; globalset(inst_next,C); ]
-{
-	goto inst_next;
-}
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SETF FS,FE,F					Set Field																			0000 01F1 01FS SSSS
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SETF bits_0_4,bits_5,bits_9 is bits_10_15=0b000001 &
-	bits_9 & bits_6_8=0b101 & bits_5 &
-	bits_0_4
-{
-	#todo: if fieldsize = 0, then make it 32 / 20h
-	#:SETF" 10,1,0" is word = 0x0570 {}
-	#:SETF" 20,1,1" is word = 0x0760 {}
-	goto inst_next;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SEXT Rd,F						Sign Extend to Long																	0000 01F1 01FS SSSS*
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SEXT Rd,bits_9 is bits_10_15=0b000001 & bits_9 & bits_5_8 & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SLA K,Rd						Shift Left Arithmetic, Constant														0010 00KK KKKR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SLA Constant,Rd is bits_10_15=0b001000 & Constant & Rd
-{
-	
-	local msb_old:1 = (*Rd >> 31) & 1;					# Get MSB Bit for overflow flag
-	Rd = Rd << Constant;
-	local msb_new:1 = (*Rd >> 31) & 1;					# Get MSB Bit for overflow flag
-	
-	#update flags
-	Update_N_Flag(Rd);
-	$(C_Flag) = ((32 - Constant) >> Rd) &  1;		# Set to the value of last bit shifted out, 0 for shift count of 0
-	Update_Z_Flag(Rd);
-	$(V_Flag) = msb_old != msb_new;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SLA Rs,Rd						Shift Left Arithmetic, Register														0110 000S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SLA Rs,Rd is bits_9_15=0b0110000 & Rs & Rd
-{
-	local Rsv:1 = Rs:1 & 31;								# Only 5 LSB are taken
-	local msb_old:1 = (*Rd >> 31) & 1;					# Get MSB Bit for overflow flag
-	Rd = Rd << Rsv;
-	local msb_new:1 = (*Rd >> 31) & 1;					# Get MSB Bit for overflow flag
-	
-	#update flags
-	Update_N_Flag(Rd);
-	$(C_Flag) = ((32 - Rsv) >> Rd) &  1;		# Set to the value of last bit shifted out, 0 for shift count of 0
-	Update_Z_Flag(Rd);
-	$(V_Flag) = msb_old != msb_new;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SLL K,Rd						Shift Left Logical, Constant														0010 01KK KKKR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SLL Constant,Rd is bits_10_15=0b001001 & Constant & Rd
-{
-	Rd = Rd << Constant;
-	
-	#update flags
-	# N = Unaffected
-	# $(C_Flag) = NEEDS DONE
-	Update_Z_Flag(Rd);
-	# V = Unaffected
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SLL Rs,Rd						Shift Left Logical, Register														0110 001S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SLL Rs,Rd is bits_9_15=0b0110001 & Rs & Rd
-{
-	local K = Rs & 31;
-	Rd = Rd << K;
-	
-	#update flags
-	# N = Unaffected
-	# C = NEEDS DONE
-	Update_Z_Flag(Rd);
-	# V = Unaffected 
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SRA K,Rd						Shift Right Arithmetic, Constant													0010 10KK KKKR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SRA Constant,Rd is bits_10_15=0b001010 & Constant & Rd
-{
-	Rd = Rd >> Constant;
-	
-	#update flags
-	Update_N_Flag(Rd);
-	$(C_Flag) = ((32 - Constant) >> Rd) &  1;		# Set to the value of last bit shifted out, 0 for shift count of 0
-	Update_Z_Flag(Rd);
-	# V = Unaffected
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SRA Rs,Rd						Shift Right Arithmetic, Register													0110 010S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SRA Rs,Rd is bits_9_15=0b0110010 & Rs & Rd
-{
-	local Rsv:1 = Rs:1 & 31;
-	Rd = Rd >> Rsv;
-	
-	#update flags
-	Update_N_Flag(Rd);
-	$(C_Flag) = ((Rsv - 1) >> Rd) &  1;		# Set to the value of last bit shifted out, 0 for shift count of 0
-	Update_Z_Flag(Rd);
-	# V = Unaffected
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SRL K,Rd						Shift Right Logical, Constant														0010 11KK KKKR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SRL Constant,Rd is bits_10_15=0b001011 & Constant & Rd
-{
-	Rd = Rd >> Constant;
-	
-	#update flags
-	Update_N_Flag(Rd);
-	$(C_Flag) = ((Constant - 1) >> Rd) &  1;		# Set to the value of last bit shifted out, 0 for shift count of 0
-	Update_Z_Flag(Rd);
-	# V = Unaffected
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SRL Rd,Rs						Shift Right Logical, Register														0110 011S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SRL Rd,Rs is bits_9_15=0b0110011 & Rs & Rd
-{
-	Rd = Rd >> Rs;
-	
-	#update flags
-	# N = Unaffected
-	# C = Set to the value of last bit shifted out, 0 for shift count of 0.
-	Update_Z_Flag(Rd);
-	# V Unaffected
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SUB Rs,Rd						Subtract Registers																	0100 010S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SUB Rs,Rd is bits_9_15=0b0100010 & Rs & Rd
-{
-	Rd = Rd - Rs;
-	
-	#update flags
-	Update_N_Flag(Rd);
-	# C = 1 if there is a borrow, 0 otherwise.
-	Update_Z_Flag(Rd);
-	# = 1 if there is an overflow, 0 otherwise
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SUBB Rs,Rd					Subtract Registers with Borrow														0100 011S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SUBB Rs,Rd is bits_9_15=0b0100011 & Rs & Rd
-{
-	Rd = Rd - Rs - (zext($(C_Flag)));
-	
-	#update flags
-	Update_N_Flag(Rd);
-	Update_C_Flag(Rd);
-	Update_Z_Flag(Rd);
-	Update_V_Flag(Rd);
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SUBI IW,Rd					Subtract Immediate (16-bits)														0000 1011 111R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SUBI IW,Rd is bits_5_15=0b00001011111 & Rd;
-word [IW = ~word;]
-{
-	Rd = Rd - IW;
-	
-	#update flags
-	Update_N_Flag(Rd);
-	Update_C_Flag(Rd);
-	Update_Z_Flag(Rd);
-	Update_V_Flag(Rd);
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SUBI IL,Rd					Subtract Immediate (32-bits)														0000 1101 000R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SUBI IL,Rd is bits_5_15=0b00001101000 & Rd; imm32 [IL=~imm32;]
-{
-	Rd = Rd - IL;
-	
-	#update flags
-	Update_N_Flag(Rd);
-	Update_C_Flag(Rd);
-	Update_Z_Flag(Rd);
-	Update_V_Flag(Rd);
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SUBK K,Rd						Subtract Constant (5-bits)															0001 01KK KKKR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SUBK Constant,Rd is bits_10_15=0b000101 & Constant & Rd
-{
-	Rd = Rd - Constant;
-	
-	#update flags
-	Update_N_Flag(Rd);
-	Update_C_Flag(Rd);
-	Update_Z_Flag(Rd);
-	Update_V_Flag(Rd);
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# SUBXY Rs,Rd					Subtract Registers in XY Mode														1110 001S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:SUBXY Rs,Rd is bits_9_15=0b1110001 & Rs & Rd
-{
-	
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# TRAP							Software Interrupt																	0000 1001 000N NNNN
-#
-#	TRAP executes a software interrupt. The return address (the address of
-#	next instruction) and then the status register are pushed onto the stack.
-#	The IE (interrupt enable) bit in ST is set to 0, disabling maskable interrupts,
-#	and ST is set to >0000 0010. Finally, the trap vector is loaded into the PC.
-#	The TMS34010 generates the trap vector addresses as shown below: 
-#
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:TRAP bits_0_4 is bits_5_15=0b00001001000 & bits_0_4
-{
-	$(Interrupt) = 0;
-	ST = 0x00000010;
-	# PC = vector. Needs done. 
-	
-	$(N_Flag) = 0;
-	$(C_Flag) = 0;
-	$(Z_Flag) = 0;
-	$(V_Flag) = 0;
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# XOR Rd,Rs						Exclusive OR Registers																0101 011S SSSR DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# NOT USED COMMONly, same pattern as CLR Code. Cannot use Both.
-#:XOR Rs,Rd is bits_9_15=0b0101011 & Rs & Rd
-#{
-	
-#}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# XORI IL,Rd					Exclusive OR Immediate Value (32-bits)												0000 1011 110D DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:XORI imm32,Rd is bits_5_15=0b00001011110 & Rd; imm32
-{
-	Rd = Rd ^ imm32;
-	
-	#update flags
-	# N = Unaffected
-	# C = Unaffected
-	Update_Z_Flag(Rd);
-	# Z = Unaffected
-}
-
-
-# -------------------------------------------------------------------------------------------------------------------------------------#
-# ZEXT Rd,F						Zero Extend to Long																	0000 01F1 001R DDDD
-# -------------------------------------------------------------------------------------------------------------------------------------#
-:ZEXT Rd,bits_9 is bits_10_15=0b000001 & bits_9 & bits_5_8=0b1001 & Rd
-{
-	Rd = zext(Rd);
-	
-	#update flags
-	# N = Unaffected
-	# C = Unaffected
-	Update_Z_Flag(Rd);
-	# Z = Unaffected
-}
-
-
-# * = User Manual Unclear on Instruction, more than 1 method was shown...
+<ovf>
+	V = 1;
+}
+
+# MPYS/MPYU: the multiplier is the low FS1 bits of Rs; the 64-bit product goes to Rd:Rd|1
+# (Rd gets the high half; if Rd is odd it ends up with the low half)
+:MPYS Rs,Rd is op7=0x2e & Rs & Rd & RdP {
+	local n:4; fieldbits(n, FS1);
+	local m:4 = Rs << (32 - n);
+	m = m s>> (32 - n);
+	local p:8 = sext(m) * sext(Rd);
+	Z = p == 0; N = p s< 0;
+	Rd = p(4);
+	RdP = p:4;
+}
+:MPYU Rs,Rd is op7=0x2f & Rs & Rd & RdP {
+	local n:4; fieldbits(n, FS1);
+	local m:4 = (Rs << (32 - n)) >> (32 - n);
+	local p:8 = zext(m) * zext(Rd);
+	Z = p == 0;
+	Rd = p(4);
+	RdP = p:4;
+}
+
+:NEG Rd is op11=0x01d & Rd {
+	local b:4 = Rd; local r:4 = 0 - b;
+	subflags(0:4, b, r); Rd = r;
+}
+:NEGB Rd is op11=0x01e & Rd {
+	local b:4 = Rd; local r:4 = 0 - b - zext(C);
+	local bout:1 = (b != 0) || C;
+	subflags(0:4, b, r); C = bout; Rd = r;
+}
+
+:SEXT Rd,F is op6=0x01 & b8=1 & sub3=0 & F & FS & Rd {
+	local n:4; fieldbits(n, FS);
+	Rd = Rd << (32 - n);
+	Rd = Rd s>> (32 - n);
+	setnz(Rd);
+}
+:ZEXT Rd,F is op6=0x01 & b8=1 & sub3=1 & F & FS & Rd {
+	local n:4; fieldbits(n, FS);
+	Rd = (Rd << (32 - n)) >> (32 - n);
+	Z = Rd == 0;
+}
+
+:SUB Rs,Rd is op7=0x22 & Rs & Rd {
+	local a:4 = Rd; local b:4 = Rs; local r:4 = a - b;
+	subflags(a, b, r); Rd = r;
+}
+:SUBB Rs,Rd is op7=0x23 & Rs & Rd {
+	local a:4 = Rd; local b:4 = Rs; local s:4 = a - b; local r:4 = s - zext(C);
+	local bout:1 = (a < b) || (s < zext(C));
+	subflags(a, b, r); C = bout; Rd = r;
+}
+# SUBI stores the 1s complement of the value
+:SUBI val,Rd is op11=0x05f & Rd; iw1 [ val = (~iw1 & 0xffff) - 2 * ((~iw1) & 0x8000); ] {
+	local a:4 = Rd; local b:4 = sext(~iw1:2); local r:4 = a - b;
+	subflags(a, b, r); Rd = r;
+}
+:SUBI val,Rd is op11=0x068 & Rd; il1 [ val = ~il1 & 0xffffffff; ] {
+	local a:4 = Rd; local b:4 = ~il1; local r:4 = a - b;
+	subflags(a, b, r); Rd = r;
+}
+:SUBK K32,Rd is op6=0x05 & K32 & Rd {
+	local a:4 = Rd; local b:4 = K32; local r:4 = a - b;
+	subflags(a, b, r); Rd = r;
+}
+:DEC Rd is op6=0x05 & k5=1 & Rd {
+	local a:4 = Rd; local r:4 = a - 1;
+	subflags(a, 1:4, r); Rd = r;
+}
+
+# =============================================================================================
+# Shifts and rotates (count 0 leaves the register alone and clears C)
+# =============================================================================================
+
+macro do_rl(r, k) {
+	local v:4 = r; local n:4 = k & 31;
+	C = 0;
+	if (n == 0) goto <z>;
+	C = ((v >> (32 - n)) & 1) != 0;
+	r = (v << n) | (v >> (32 - n));
+<z>
+	Z = r == 0;
+}
+macro do_sla(r, k) {
+	local v:4 = r; local n:4 = k & 31;
+	C = 0; V = 0;
+	if (n == 0) goto <z>;
+	local mask:4 = (0xffffffff << (31 - n)) & 0x7fffffff;
+	local t:4 = v ^ (zext(v s< 0) * mask);
+	V = (t & mask) != 0;
+	C = ((v >> (32 - n)) & 1) != 0;
+	r = v << n;
+<z>
+	setnz(r);
+}
+macro do_sll(r, k) {
+	local v:4 = r; local n:4 = k & 31;
+	C = 0;
+	if (n == 0) goto <z>;
+	C = ((v >> (32 - n)) & 1) != 0;
+	r = v << n;
+<z>
+	Z = r == 0;
+}
+macro do_sra(r, k) {
+	local v:4 = r; local n:4 = k & 31;
+	C = 0;
+	if (n == 0) goto <z>;
+	C = ((v >> (n - 1)) & 1) != 0;
+	r = v s>> n;
+<z>
+	setnz(r);
+}
+macro do_srl(r, k) {
+	local v:4 = r; local n:4 = k & 31;
+	C = 0;
+	if (n == 0) goto <z>;
+	C = ((v >> (n - 1)) & 1) != 0;
+	r = v >> n;
+<z>
+	Z = r == 0;
+}
+
+:RL k5,Rd  is op6=0x0c & k5 & Rd { do_rl(Rd, k5:4); }
+:SLA k5,Rd is op6=0x08 & k5 & Rd { do_sla(Rd, k5:4); }
+:SLL k5,Rd is op6=0x09 & k5 & Rd { do_sll(Rd, k5:4); }
+# SRA/SRL K: the opcode holds the 2s complement of the count
+:SRA cnt,Rd is op6=0x0a & k5 & Rd [ cnt = (32 - k5) & 31; ] { do_sra(Rd, (32 - k5:4)); }
+:SRL cnt,Rd is op6=0x0b & k5 & Rd [ cnt = (32 - k5) & 31; ] { do_srl(Rd, (32 - k5:4)); }
+:RL Rs,Rd  is op7=0x34 & Rs & Rd { do_rl(Rd, Rs); }
+:SLA Rs,Rd is op7=0x30 & Rs & Rd { do_sla(Rd, Rs); }
+:SLL Rs,Rd is op7=0x31 & Rs & Rd { do_sll(Rd, Rs); }
+# SRA/SRL Rs: the count is the 2s complement of the low 5 bits of Rs
+:SRA Rs,Rd is op7=0x32 & Rs & Rd { do_sra(Rd, 0 - Rs); }
+:SRL Rs,Rd is op7=0x33 & Rs & Rd { do_srl(Rd, 0 - Rs); }
+
+# =============================================================================================
+# Moves
+# =============================================================================================
+
+:MOVI iw1s,Rd is op11=0x04e & Rd; iw1s { Rd = iw1s; setnz(Rd); V = 0; }
+:MOVI il1,Rd is op11=0x04f & Rd; il1 { Rd = il1; setnz(Rd); V = 0; }
+:MOVK K32,Rd is op6=0x06 & K32 & Rd { Rd = K32; }
+
+:MOVE Rs,Rd is op7=0x26 & Rs & Rd { Rd = Rs; setnz(Rd); V = 0; }
+:MOVE Rs,RdX is op7=0x27 & Rs & RdX { RdX = Rs; setnz(RdX); V = 0; }
+
+:MOVX Rs,Rd is op7=0x76 & Rs & Rd { Rd = (Rd & 0xffff0000) | (Rs & 0xffff); }
+:MOVY Rs,Rd is op7=0x77 & Rs & Rd { Rd = (Rs & 0xffff0000) | (Rd & 0xffff); }
+
+# --- field moves: register to memory (no status change) ---
+:MOVE Rs,*Rd,F is op6=0x20 & F & FS & Rs & Rd { wfield(Rd, FS, Rs); }
+:MOVE Rs,*Rd+,F is op6=0x24 & F & FS & Rs & Rd {
+	local v:4 = Rs;
+	wfield(Rd, FS, v);
+	local n:4; fieldbits(n, FS); Rd = Rd + n;
+}
+:MOVE Rs,-*Rd,F is op6=0x28 & F & FS & Rs & Rd {
+	local v:4 = Rs;
+	local n:4; fieldbits(n, FS); Rd = Rd - n;
+	wfield(Rd, FS, v);
+}
+:MOVE Rs,*Rd(iw1s),F is op6=0x2c & F & FS & Rs & Rd; iw1s {
+	local a:4 = Rd + iw1s; wfield(a, FS, Rs);
+}
+:MOVE Rd,DAbs,F is op6=0x01 & b8=1 & sub3=4 & F & FS & Rd; DAbs {
+	wfield(DAbs, FS, Rd);
+}
+
+# --- field moves: memory to register (N and Z set, V cleared) ---
+:MOVE *Rs,Rd,F is op6=0x21 & F & FS & FE & Rs & Rd {
+	local v:4; rfield(v, Rs, FS, FE); Rd = v; setnz(Rd); V = 0;
+}
+:MOVE *Rs+,Rd,F is op6=0x25 & F & FS & FE & Rs & Rd {
+	local v:4; rfield(v, Rs, FS, FE);
+	local n:4; fieldbits(n, FS); Rs = Rs + n;
+	Rd = v; setnz(Rd); V = 0;
+}
+:MOVE -*Rs,Rd,F is op6=0x29 & F & FS & FE & Rs & Rd {
+	local n:4; fieldbits(n, FS); Rs = Rs - n;
+	local v:4; rfield(v, Rs, FS, FE);
+	Rd = v; setnz(Rd); V = 0;
+}
+:MOVE *Rs(iw1s),Rd,F is op6=0x2d & F & FS & FE & Rs & Rd; iw1s {
+	local a:4 = Rs + iw1s;
+	local v:4; rfield(v, a, FS, FE); Rd = v; setnz(Rd); V = 0;
+}
+:MOVE SAbs,Rd,F is op6=0x01 & b8=1 & sub3=5 & F & FS & FE & Rd; SAbs {
+	local v:4; rfield(v, SAbs, FS, FE); Rd = v; setnz(Rd); V = 0;
+}
+
+# --- field moves: memory to memory (no status change) ---
+:MOVE *Rs,*Rd,F is op6=0x22 & F & FS & FE & Rs & Rd {
+	local v:4; rfield(v, Rs, FS, FE); wfield(Rd, FS, v);
+}
+:MOVE *Rs+,*Rd+,F is op6=0x26 & F & FS & FE & Rs & Rd {
+	local v:4; rfield(v, Rs, FS, FE);
+	local n:4; fieldbits(n, FS); Rs = Rs + n;
+	wfield(Rd, FS, v); Rd = Rd + n;
+}
+:MOVE -*Rs,-*Rd,F is op6=0x2a & F & FS & FE & Rs & Rd {
+	local n:4; fieldbits(n, FS);
+	Rs = Rs - n;
+	local v:4; rfield(v, Rs, FS, FE);
+	Rd = Rd - n;
+	wfield(Rd, FS, v);
+}
+:MOVE *Rs(iw1s),*Rd+,F is op6=0x34 & F & FS & FE & Rs & Rd; iw1s {
+	local a:4 = Rs + iw1s;
+	local v:4; rfield(v, a, FS, FE);
+	wfield(Rd, FS, v);
+	local n:4; fieldbits(n, FS); Rd = Rd + n;
+}
+:MOVE *Rs(iw1s),*Rd(iw2s),F is op6=0x2e & F & FS & FE & Rs & Rd; iw1s; iw2s {
+	local a:4 = Rs + iw1s;
+	local v:4; rfield(v, a, FS, FE);
+	local b:4 = Rd + iw2s;
+	wfield(b, FS, v);
+}
+:MOVE SAbs,DAbs2,F is op6=0x01 & b8=1 & sub3=6 & rf=0 & F & FS & FE; SAbs; DAbs2 {
+	local v:4; rfield(v, SAbs, FS, FE); wfield(DAbs2, FS, v);
+}
+:MOVE SAbs,*Rd+,F is op6=0x35 & F & b8=0 & sub3=0 & FS & FE & Rd; SAbs {
+	local v:4; rfield(v, SAbs, FS, FE);
+	wfield(Rd, FS, v);
+	local n:4; fieldbits(n, FS); Rd = Rd + n;
+}
+
+# --- byte moves ---
+:MOVB Rs,*Rd is op7=0x46 & Rs & Rd { wbyte(Rd, Rs); }
+:MOVB *Rs,Rd is op7=0x47 & Rs & Rd { local v:4; rbyte(v, Rs); Rd = v; setnz(Rd); V = 0; }
+:MOVB *Rs,*Rd is op7=0x4e & Rs & Rd { local v:4; rbyte(v, Rs); wbyte(Rd, v); }
+:MOVB Rs,*Rd(iw1s) is op7=0x56 & Rs & Rd; iw1s { local a:4 = Rd + iw1s; wbyte(a, Rs); }
+:MOVB *Rs(iw1s),Rd is op7=0x57 & Rs & Rd; iw1s {
+	local a:4 = Rs + iw1s; local v:4; rbyte(v, a); Rd = v; setnz(Rd); V = 0;
+}
+:MOVB *Rs(iw1s),*Rd(iw2s) is op7=0x5e & Rs & Rd; iw1s; iw2s {
+	local a:4 = Rs + iw1s; local v:4; rbyte(v, a);
+	local b:4 = Rd + iw2s; wbyte(b, v);
+}
+:MOVB Rd,DAbs is op6=0x01 & b8=1 & sub3=7 & f9=0 & Rd; DAbs { wbyte(DAbs, Rd); }
+:MOVB SAbs,Rd is op6=0x01 & b8=1 & sub3=7 & f9=1 & Rd; SAbs {
+	local v:4; rbyte(v, SAbs); Rd = v; setnz(Rd); V = 0;
+}
+:MOVB SAbs,DAbs2 is op12=0x034; SAbs; DAbs2 { local v:4; rbyte(v, SAbs); wbyte(DAbs2, v); }
+
+# --- field parameters ---
+:SETF SetFS,fe5,F is op6=0x01 & b8=1 & sub2=1 & f9=0 & F & fe5 & low5 & SetFS {
+	FS0 = low5; FE0 = fe5;
+}
+:SETF SetFS,fe5,F is op6=0x01 & b8=1 & sub2=1 & f9=1 & F & fe5 & low5 & SetFS {
+	FS1 = low5; FE1 = fe5;
+}
+:EXGF Rd,F is op6=0x35 & F & b8=1 & sub3=0 & FS & FE & Rd {
+	local old:4 = zext(FS) | (zext(FE) << 5);
+	FS = Rd[0,5]; FE = Rd[5,1];
+	Rd = old;
+}
+
+# =============================================================================================
+# Program control and context switching
+# =============================================================================================
+
+:CALL Rd is op11=0x049 & Rd {
+	local t:4; codeaddr(t, Rd);
+	local ra:4 = inst_next; push32(ra << 3);
+	call [t];
+}
+:CALLA Abs32 is op12=0x0d5; Abs32 {
+	local ra:4 = inst_next; push32(ra << 3);
+	call Abs32;
+}
+:CALLR Rel16 is op12=0x0d3; Rel16 {
+	local ra:4 = inst_next; push32(ra << 3);
+	call Rel16;
+}
+
+:RETS is op11=0x04b & low5=0 {
+	local t:4; pop32(t);
+	local a:4; codeaddr(a, t);
+	return [a];
+}
+:RETS low5 is op11=0x04b & low5 {
+	local t:4; pop32(t);
+	SP = SP + low5 * 16;
+	local a:4; codeaddr(a, t);
+	return [a];
+}
+
+:RETI is op12=0x094 {
+	local st:4; pop32(st);
+	local t:4; pop32(t);
+	putst(st);
+	local a:4; codeaddr(a, t);
+	return [a];
+}
+
+# TRAP 0 is the reset vector: nothing is pushed and it does not return
+:TRAP "0" is op11=0x048 & low5=0 {
+	local vec:4 = 0x1ffffffc;
+	local t:4 = *:4 vec;
+	local a:4; codeaddr(a, t);
+	resetst();
+	goto [a];
+}
+:TRAP low5 is op11=0x048 & low5 {
+	local ra:4 = inst_next; push32(ra << 3);
+	local st:4; getst(st); push32(st);
+	resetst();
+	local vec:4 = 0x1ffffffc - low5 * 4;
+	local t:4 = *:4 vec;
+	local a:4; codeaddr(a, t);
+	call [a];
+}
+
+:JUMP Rd is op11=0x00b & Rd {
+	local t:4; codeaddr(t, Rd);
+	goto [t];
+}
+:EXGPC Rd is op11=0x009 & Rd {
+	local t:4; codeaddr(t, Rd);
+	local ra:4 = inst_next;
+	Rd = ra << 3;
+	call [t];
+}
+:GETPC Rd is op11=0x00a & Rd { local ra:4 = inst_next; Rd = ra << 3; }
+:GETST Rd is op11=0x00c & Rd { local st:4; getst(st); Rd = st; }
+:PUTST Rd is op11=0x00d & Rd { putst(Rd); }
+:PUSHST is op12=0x01e { local st:4; getst(st); push32(st); }
+:POPST is op12=0x01c { local st:4; pop32(st); putst(st); }
+
+:DINT is op12=0x036 { IE = 0; }
+:EINT is op12=0x0d6 { IE = 1; }
+:CLRC is op12=0x032 { C = 0; }
+:SETC is op12=0x0de { C = 1; }
+:NOP is op12=0x030 { }
+# EMU acts as a NOP unless the RUN/EMU pin selects emulation mode (an XDS emulator is attached)
+:EMU is op12=0x010 { }
+# REV: revision number of the TMS34010 (User's Guide example: 00000008h)
+:REV Rd is op11=0x001 & Rd { Rd = 8; }
+
+# --- jumps ---
+:JR^CC Rel8 is op4=0xc & CC & low8!=0 & low8!=0x80 & Rel8 {
+	if (CC) goto Rel8;
+}
+:JR^CC Rel16 is op4=0xc & CC & low8=0; Rel16 {
+	if (CC) goto Rel16;
+}
+:JA^CC Abs32 is op4=0xc & CC & low8=0x80; Abs32 {
+	if (CC) goto Abs32;
+}
+:JRUC Rel8 is op4=0xc & cc=0 & low8!=0 & low8!=0x80 & Rel8 { goto Rel8; }
+:JRUC Rel16 is op4=0xc & cc=0 & low8=0; Rel16 { goto Rel16; }
+:JAUC Abs32 is op4=0xc & cc=0 & low8=0x80; Abs32 { goto Abs32; }
+
+:DSJ Rd,Rel16 is op11=0x06c & Rd; Rel16 {
+	Rd = Rd - 1;
+	if (Rd != 0) goto Rel16;
+}
+:DSJEQ Rd,Rel16 is op11=0x06d & Rd; Rel16 {
+	if (!Z) goto inst_next;
+	Rd = Rd - 1;
+	if (Rd != 0) goto Rel16;
+}
+:DSJNE Rd,Rel16 is op11=0x06e & Rd; Rel16 {
+	if (Z) goto inst_next;
+	Rd = Rd - 1;
+	if (Rd != 0) goto Rel16;
+}
+:DSJS Rd,DsjsTgt is op5=0x07 & Rd & DsjsTgt {
+	Rd = Rd - 1;
+	if (Rd != 0) goto DsjsTgt;
+}
+
+# =============================================================================================
+# XY and graphics
+# =============================================================================================
+
+:ADDXY Rs,Rd is op7=0x70 & Rs & Rd {
+	local sx:2; local sy:2; local dx:2; local dy:2;
+	getx(sx, Rs); gety(sy, Rs); getx(dx, Rd); gety(dy, Rd);
+	dx = dx + sx; dy = dy + sy;
+	N = dx == 0; C = dy s< 0; Z = dy == 0; V = dx s< 0;
+	setxy(Rd, dx, dy);
+}
+:SUBXY Rs,Rd is op7=0x71 & Rs & Rd {
+	local sx:2; local sy:2; local dx:2; local dy:2;
+	getx(sx, Rs); gety(sy, Rs); getx(dx, Rd); gety(dy, Rd);
+	N = sx == dx; C = sy s> dy; Z = sy == dy; V = sx s> dx;
+	dx = dx - sx; dy = dy - sy;
+	setxy(Rd, dx, dy);
+}
+:CMPXY Rs,Rd is op7=0x72 & Rs & Rd {
+	local sx:2; local sy:2; local dx:2; local dy:2;
+	getx(sx, Rs); gety(sy, Rs); getx(dx, Rd); gety(dy, Rd);
+	local rx:2 = dx - sx; local ry:2 = dy - sy;
+	N = rx == 0; V = rx s< 0; Z = ry == 0; C = ry s< 0;
+}
+
+@include "tms34010_gfx.sinc"
