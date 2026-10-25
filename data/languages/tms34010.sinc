@@ -198,8 +198,7 @@ SAbs: "@"^il1 is il1 { export *[const]:4 il1; }
 DAbs2: "@"^il2 is il2 { export *[const]:4 il2; }
 DAbs: "@"^il1 is il1 { export *[const]:4 il1; }
 
-# Condition codes
-CC: "UC" is cc=0  { export 1:1; }
+# Condition codes (cc=0, UC, has its own unconditional JRUC/JAUC constructors)
 CC: "P"  is cc=1  { local t:1 = !N && !Z; export t; }
 CC: "LS" is cc=2  { local t:1 = C || Z; export t; }
 CC: "HI" is cc=3  { local t:1 = !C && !Z; export t; }
