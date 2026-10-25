@@ -33,7 +33,8 @@ with open(f.absolutePath, 'r') as file_handle:
             value = int(value_str, 16)  # convert to dec
             
             # FIXED: Python 3 division returns float, used // for integer division
-            value = (value // 8) & 0xFFFFF 
+            # Ghidra address = TMS34010 bit address / 8 (see GHIDRA-RARE.md)
+            value = value // 8
             
             address = toAddr(value)
             comment = pieces[3]        
@@ -58,13 +59,8 @@ with open(f.absolutePath, 'r') as file_handle:
                     c+=1
     
             else:
-                if value < 0xfffff:
-                    # createLabel(address, name, False)
-                    l+=1
-                elif value < 0xff800000: # ram locations
-                    print(value)
-                    createLabel(address, name, False)
-                    l+=1
+                createLabel(address, name, False)
+                l+=1
             
         except Exception as e: # FIXED: Catching specific exception to see errors
             print("Error on line: " + line + " -> " + str(e))

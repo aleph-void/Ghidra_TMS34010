@@ -31,7 +31,8 @@ for line in file(f.absolutePath):  # note, cannot use open(), since that is in G
         name = pieces[1]
         value_str = "0x" + pieces[2]
         value = int(value_str, 16)  # convert to dec
-        value = (value / 8) & 0xFFFFF
+        # Ghidra address = TMS34010 bit address / 8 (see GHIDRA-RARE.md)
+        value = value / 8
         
         #value_h = hex(value_int)  # convert to hex
         
@@ -58,17 +59,8 @@ for line in file(f.absolutePath):  # note, cannot use open(), since that is in G
                 c+=1
     
         else:
-            #print(value)
-            if value < 0xfffff:
-                #address_line = "ram:" + value
-                #createLabel(address, name, False)
-                l+=1
-            elif value < 0xff800000: # ram locations
-                print(value)
-                #address_line = "rom:{}" + value
-                createLabel(address, name, False)
-                #createLabel(value_str, name, 'ram', False, DEFAULT)
-                l+=1
+            createLabel(address, name, False)
+            l+=1
             #print("Created label {} at address {}".format(name, address))
             
 
