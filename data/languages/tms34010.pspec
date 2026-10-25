@@ -1,130 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- TMS34010. Ghidra addresses are bit addresses divided by 8 (see tms34010.slaspec). -->
 <processor_spec>
-	<programcounter register="PC"/>
-	
-	<data_space space ="ROM" ptr_wordsize="4"/>
-	
-	<register_data>
-		<register name="SP"/>
-		<register name="ST"/>
-		<register name="A0"/>
-		<register name="A1"/>
-		<register name="A2"/>
-		<register name="A3"/>
-		<register name="A4"/>
-		<register name="A5"/>
-		<register name="A6"/>
-		<register name="A7"/>
-		<register name="A8"/>
-		<register name="A9"/>
-		<register name="A10"/>
-		<register name="A11"/>
-		<register name="A12"/>
-		<register name="A13"/>
-		<register name="A14"/>
-		<register name="B0"/>
-		<register name="B1"/>
-		<register name="B2"/>
-		<register name="B3"/>
-		<register name="B4"/>
-		<register name="B5"/>
-		<register name="B6"/>
-		<register name="B7"/>
-		<register name="B8"/>
-		<register name="B9"/>
-		<register name="B10"/>
-		<register name="B11"/>
-		<register name="B12"/>
-		<register name="B13"/>
-		<register name="B14"/>
-	</register_data>
-
-	<default_symbols>
-		<symbol name="Trap_00_Address_Reset" address="rom:0xffffc" type="code_ptr" entry ="true" />
-		<symbol name="Trap_01_External_Interrupt_1" address="rom:0xffff8" type="code_ptr" entry ="false" />
-		<symbol name="Trap_02_External_Interrupt_2" address="rom:0xffff4" type="code_ptr" entry ="false" />
-		<symbol name="Trap_03" address="rom:0xffff0" type="code_ptr" entry ="false" />
-		<symbol name="Trap_04" address="rom:0xfffec" type="code_ptr" entry ="false" />
-		<symbol name="Trap_05" address="rom:0xfffe8" type="code_ptr" entry ="false" />
-		<symbol name="Trap_06" address="rom:0xfffe4" type="code_ptr" entry ="false" />
-		<symbol name="Trap_07" address="rom:0xfffe0" type="code_ptr" entry ="false" />
-		<symbol name="Trap_08_NonMaskable" address="rom:0xfffdc" type="code_ptr" entry ="false" />
-		<symbol name="Trap_09_Host_Interrupt" address="rom:0xfffd8" type="code_ptr" entry ="false" />
-		<symbol name="Trap_10_Display_Interrupt" address="rom:0xfffd4" type="code_ptr" entry ="false" />
-		<symbol name="Trap_11_Window_Violation" address="rom:0xfffd0" type="code_ptr" entry ="false" />
-		<symbol name="Trap_12" address="rom:0xfffcc" type="code_ptr" entry ="false" />
-		<symbol name="Trap_13" address="rom:0xfffc8" type="code_ptr" entry ="false" />
-		<symbol name="Trap_14" address="rom:0xfffc4" type="code_ptr" entry ="false" />
-		<symbol name="Trap_15" address="rom:0xfffc0" type="code_ptr" entry ="false" />
-		<symbol name="Trap_16" address="rom:0xfffbc" type="code_ptr" entry ="false" />
-		<symbol name="Trap_17" address="rom:0xfffb8" type="code_ptr" entry ="false" />
-		<symbol name="Trap_18" address="rom:0xfffb4" type="code_ptr" entry ="false" />
-		<symbol name="Trap_19" address="rom:0xfffb0" type="code_ptr" entry ="false" />
-		<symbol name="Trap_20" address="rom:0xfffac" type="code_ptr" entry ="false" />
-		<symbol name="Trap_21" address="rom:0xfffa8" type="code_ptr" entry ="false" />
-		<symbol name="Trap_22" address="rom:0xfffa4" type="code_ptr" entry ="false" />
-		<symbol name="Trap_23" address="rom:0xfffa0" type="code_ptr" entry ="false" />
-		<symbol name="Trap_24" address="rom:0xfff9c" type="code_ptr" entry ="false" />
-		<symbol name="Trap_25" address="rom:0xfff98" type="code_ptr" entry ="false" />
-		<symbol name="Trap_26" address="rom:0xfff94" type="code_ptr" entry ="false" />
-		<symbol name="Trap_27" address="rom:0xfff90" type="code_ptr" entry ="false" />
-		<symbol name="Trap_28" address="rom:0xfff8c" type="code_ptr" entry ="false" />
-		<symbol name="Trap_29" address="rom:0xfff88" type="code_ptr" entry ="false" />
-		<symbol name="Trap_30_Illegal_Opcode" address="rom:0xfff84" type="code_ptr" entry ="false" />
-		<symbol name="Trap_31" address="rom:0xfff80" type="code_ptr" entry ="false" />
-
-		<symbol name="HORIZONTAL_END_SYNC" address="ram:0xC0000000" entry ="false" />
-		<symbol name="HORIZONTAL_END_BLANK" address="ram:0xC0000010" entry ="false" />
-		<symbol name="HORIZONTAL_START_BLANK" address="ram:0xC0000020" entry ="false" />
-		<symbol name="HORIZONTAL_TOTAL" address="ram:0xC0000030" entry ="false" />
-		<symbol name="VERTICAL_SYNC" address="ram:0xC0000040" entry ="false" />
-		<symbol name="VERTICAL_BLANK" address="ram:0xC0000050" entry ="false" />
-		<symbol name="VERTICAL_START_BLANK" address="ram:0xC0000060" entry ="false" />
-		<symbol name="VERTICAL_TOTAL" address="ram:0xC0000070" entry ="false" />
-		<symbol name="DISPLAY_CONTROL" address="ram:0xC0000080" entry ="false" />
-		<symbol name="DISPLAY_START" address="ram:0xC0000090" entry ="false" />
-		<symbol name="DISPLAY_INTERRUPT" address="ram:0xC00000A0" entry ="false" />
-		<symbol name="CONTROL" address="ram:0xC00000B0" entry ="false" />
-		<symbol name="HOST_DATA" address="ram:0xC00000C0" entry ="false" />
-		<symbol name="HOST_ADDRESS_LSB" address="ram:0xC00000D0" entry ="false" />
-		<symbol name="HOST_ADDRESS_MSB" address="ram:0xC00000E0" entry ="false" />
-		<symbol name="HOST_CONTROL_LSB" address="ram:0xC00000F0" entry ="false" />
-		<symbol name="HOST_CONTROL_MSB" address="ram:0xC0000100" entry ="false" />
-		<symbol name="INTERRUPT_ENABLE" address="ram:0xC0000110" entry ="false" />
-		<symbol name="INTERRUPT_PENDING" address="ram:0xC0000120" entry ="false" />
-		<symbol name="SOURCE_CONVERSION_PITCH" address="ram:0xC0000130" entry ="false" />
-		<symbol name="DESTINATION_CONVERSION_PITCH" address="ram:0xC0000140" entry ="false" />
-		<symbol name="PIXEL_SIZE" address="ram:0xC0000150" entry ="false" />
-		<symbol name="PIXEL_MASK" address="ram:0xC0000160" entry ="false" />
-		<symbol name="RESERVED" address="ram:0xC0000170" entry ="false" />
-		<symbol name="RESERVED" address="ram:0xC0000180" entry ="false" />
-		<symbol name="RESERVED" address="ram:0xC0000190" entry ="false" />
-		<symbol name="RESERVED" address="ram:0xC00001A0" entry ="false" />
-		<symbol name="DISPLAY_TAP_POINT" address="ram:0xC00001B0" entry ="false" />
-		<symbol name="HORIZONTAL_COUNT" address="ram:0xC00001C0" entry ="false" />
-		<symbol name="VERTICAL_COUNT" address="ram:0xC00001D0" entry ="false" />
-		<symbol name="DISPLAY_ADDRESS" address="ram:0xC00001E0" entry ="false" />
-		<symbol name="DRAM_REFRESH_COUNT" address="ram:0xC00001F0" entry ="false" />
-	</default_symbols>
-
-	<default_memory_blocks>
-		<memory_block name="VRAM" start_address="ram:0x0" length="0xffffff" mode="rw" />
-		<memory_block name="RAM" start_address="ram:0x01000000" length="0x003fffff" mode="rw" />
-		<memory_block name="NVRAM" start_address="ram:0x01400000" length="0x1ffff" mode="rw" />
-		<memory_block name="CMOS_ENABLE" start_address="ram:0x01480000" length="0x7ffff" mode="w" />
-		<memory_block name="INPUT_0" start_address="ram:0x01600000" length="0xf" mode="r" />
-		<memory_block name="INPUT_1" start_address="ram:0x01600010" length="0xf" mode="r" />
-		<memory_block name="INPUT_2" start_address="ram:0x01600020" length="0xf" mode="r" />
-		<memory_block name="DIPSWITCHES" start_address="ram:0x01600030" length="0xf" mode="r" />
-		<memory_block name="PALETTE" start_address="ram:0x01800000" length="0x7ffff" mode="rw" />
-		<memory_block name="DMA" start_address="ram:0x01a80000" length="0xff" mode="rw" />
-		<memory_block name="midtunit_control_w" start_address="ram:0x01b00000" length="0x1f" mode="w" />
-		<memory_block name="midtunit_sound_state_r" start_address="ram:0x01d00000" length="0x1f" mode="r" />
-		<memory_block name="midtunit_sound_rw" start_address="ram:0x01d01020" length="0x1f" mode="rw" />
-		<memory_block name="WATCHDOG" start_address="ram:0x01d81060" length="0x1f" mode="w" />
-		<memory_block name="midtunit_control_w" start_address="ram:0x01f00000" length="0x1f" mode="w" />
-		<memory_block name="REGISTERS" start_address="ram:0xc0000000" length="0x1ff" mode="rw" />
-		<memory_block name="GFX" start_address="rom:0x02000000" length="0x07ffffff" mode="r" />
-		<memory_block name="ROM" start_address="rom:0xff800000" length="0x7fffff" mode="r" />
-	</default_memory_blocks>
-
+  <programcounter register="PC"/>
+  <register_data>
+    <register name="MMP" hidden="true"/>
+    <register name="STX" hidden="true"/>
+    <register name="_B15" hidden="true"/>
+  </register_data>
+  <volatile outputop="write_volatile" inputop="read_volatile">
+    <range space="ram" first="0x18000000" last="0x1800003f"/>
+  </volatile>
+  <default_symbols>
+    <symbol name="HESYNC" address="ram:0x18000000"/>
+    <symbol name="HEBLNK" address="ram:0x18000002"/>
+    <symbol name="HSBLNK" address="ram:0x18000004"/>
+    <symbol name="HTOTAL" address="ram:0x18000006"/>
+    <symbol name="VESYNC" address="ram:0x18000008"/>
+    <symbol name="VEBLNK" address="ram:0x1800000a"/>
+    <symbol name="VSBLNK" address="ram:0x1800000c"/>
+    <symbol name="VTOTAL" address="ram:0x1800000e"/>
+    <symbol name="DPYCTL" address="ram:0x18000010"/>
+    <symbol name="DPYSTRT" address="ram:0x18000012"/>
+    <symbol name="DPYINT" address="ram:0x18000014"/>
+    <symbol name="CONTROL" address="ram:0x18000016"/>
+    <symbol name="HSTDATA" address="ram:0x18000018"/>
+    <symbol name="HSTADRL" address="ram:0x1800001a"/>
+    <symbol name="HSTADRH" address="ram:0x1800001c"/>
+    <symbol name="HSTCTLL" address="ram:0x1800001e"/>
+    <symbol name="HSTCTLH" address="ram:0x18000020"/>
+    <symbol name="INTENB" address="ram:0x18000022"/>
+    <symbol name="INTPEND" address="ram:0x18000024"/>
+    <symbol name="CONVSP" address="ram:0x18000026"/>
+    <symbol name="CONVDP" address="ram:0x18000028"/>
+    <symbol name="PSIZE" address="ram:0x1800002a"/>
+    <symbol name="PMASK" address="ram:0x1800002c"/>
+    <symbol name="RESERVED_170" address="ram:0x1800002e"/>
+    <symbol name="RESERVED_180" address="ram:0x18000030"/>
+    <symbol name="RESERVED_190" address="ram:0x18000032"/>
+    <symbol name="RESERVED_1A0" address="ram:0x18000034"/>
+    <symbol name="DPYTAP" address="ram:0x18000036"/>
+    <symbol name="HCOUNT" address="ram:0x18000038"/>
+    <symbol name="VCOUNT" address="ram:0x1800003a"/>
+    <symbol name="DPYADR" address="ram:0x1800003c"/>
+    <symbol name="REFCNT" address="ram:0x1800003e"/>
+    <symbol name="VECTOR_RESET" address="ram:0x1ffffffc"/>
+    <symbol name="VECTOR_INT1" address="ram:0x1ffffff8"/>
+    <symbol name="VECTOR_INT2" address="ram:0x1ffffff4"/>
+    <symbol name="VECTOR_TRAP3" address="ram:0x1ffffff0"/>
+    <symbol name="VECTOR_TRAP4" address="ram:0x1fffffec"/>
+    <symbol name="VECTOR_TRAP5" address="ram:0x1fffffe8"/>
+    <symbol name="VECTOR_TRAP6" address="ram:0x1fffffe4"/>
+    <symbol name="VECTOR_TRAP7" address="ram:0x1fffffe0"/>
+    <symbol name="VECTOR_NMI" address="ram:0x1fffffdc"/>
+    <symbol name="VECTOR_HI" address="ram:0x1fffffd8"/>
+    <symbol name="VECTOR_DI" address="ram:0x1fffffd4"/>
+    <symbol name="VECTOR_WV" address="ram:0x1fffffd0"/>
+    <symbol name="VECTOR_TRAP12" address="ram:0x1fffffcc"/>
+    <symbol name="VECTOR_TRAP13" address="ram:0x1fffffc8"/>
+    <symbol name="VECTOR_TRAP14" address="ram:0x1fffffc4"/>
+    <symbol name="VECTOR_TRAP15" address="ram:0x1fffffc0"/>
+    <symbol name="VECTOR_TRAP16" address="ram:0x1fffffbc"/>
+    <symbol name="VECTOR_TRAP17" address="ram:0x1fffffb8"/>
+    <symbol name="VECTOR_TRAP18" address="ram:0x1fffffb4"/>
+    <symbol name="VECTOR_TRAP19" address="ram:0x1fffffb0"/>
+    <symbol name="VECTOR_TRAP20" address="ram:0x1fffffac"/>
+    <symbol name="VECTOR_TRAP21" address="ram:0x1fffffa8"/>
+    <symbol name="VECTOR_TRAP22" address="ram:0x1fffffa4"/>
+    <symbol name="VECTOR_TRAP23" address="ram:0x1fffffa0"/>
+    <symbol name="VECTOR_TRAP24" address="ram:0x1fffff9c"/>
+    <symbol name="VECTOR_TRAP25" address="ram:0x1fffff98"/>
+    <symbol name="VECTOR_TRAP26" address="ram:0x1fffff94"/>
+    <symbol name="VECTOR_TRAP27" address="ram:0x1fffff90"/>
+    <symbol name="VECTOR_TRAP28" address="ram:0x1fffff8c"/>
+    <symbol name="VECTOR_TRAP29" address="ram:0x1fffff88"/>
+    <symbol name="VECTOR_ILLOP" address="ram:0x1fffff84"/>
+    <symbol name="VECTOR_TRAP31" address="ram:0x1fffff80"/>
+  </default_symbols>
+  <default_memory_blocks>
+    <memory_block name="IO" start_address="ram:0x18000000" length="0x40" initialized="false" mode="rwv"/>
+  </default_memory_blocks>
 </processor_spec>
