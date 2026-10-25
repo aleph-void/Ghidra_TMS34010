@@ -6,7 +6,12 @@
 #   3. every-entry test: every SLEIGH constructor is used by some decoded instruction
 #   4. assembler corpus: every instruction form NetBSD's gspa accepts, random operands, compared
 #      with the source and with MAME (gen_asm.py, asm_check.py); skipped without GSPA
+#   4b. TI COFF: the same corpus as assembled and linked by TI's own GSPA/GSPLNK v1.04 (test/coff/,
+#      rebuilt by build-ti-coff.sh), imported with the module's COFF loader (relocatable .obj and
+#      linked .out); every instruction checked against the source line, the .out also vs MAME
 #   5. p-code emulator tests (emu_tests.py, EmuCheck.java); one deliberately broken run must fail
+#   5b. decompiler: a TI-C-style function (arguments on the A14 bit-addressed stack) decompiled with
+#      the default compiler spec and with "tic" (FS1 = 32 at entry, TI C compiler convention)
 #   6. graphics vectors: 137 MIT-licensed programs from github.com/birdybro/TMS34010_sv whose
 #      final state MAME recorded, run in Ghidra's emulator (GfxCheck.java)
 #
@@ -16,6 +21,8 @@
 #   GHIDRA_INSTALL_DIR  Ghidra 12.1.x whose Ghidra/Processors/TMS34010 is (a symlink to) this module
 #   UNIDASM             MAME's unidasm (default: unidasm on PATH; MAME 0.285 was used)
 #   GSPA                gspa binary (test/build-gspa.sh builds one); optional
+#   The COFF step needs the module's Java part: an installed extension, or test/build-jar.sh for a
+#   linked development copy.
 #   TMPDIR              where throw-away Ghidra projects go (must not be under a dot-directory)
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -60,6 +67,22 @@ else
 	echo "   skipped (set GSPA; test/build-gspa.sh builds NetBSD's gspa)"
 fi
 
+echo "== TI COFF (TI GSPA/GSPLNK v1.04 output of the corpus, Tms340CoffLoader)"
+python3 "$HERE/gen_asm.py" asm.s 12
+python3 "$HERE/ti_coff.py" asm asm.s ti.s ti.asm
+cmp -s ti.asm <(sed 's/$/\r/' "$HERE/coff/c.asm") || echo "   note: test/coff/c.asm differs from the generated corpus (rebuild with build-ti-coff.sh)"
+for k in obj out; do
+	python3 "$HERE/ti_coff.py" listing "$HERE/coff/c.lst" ti.s "$([[ $k == out ]] && echo FF800000 || echo 0)" ti_$k.lst
+	python3 "$HERE/asm_check.py" image ti_$k.lst /dev/null ti_${k}_addrs.txt >/dev/null
+	"$HERE/ghidra-script.sh" coff - "$HERE/coff/c.$k" DumpAt.java "$W/ti_${k}_addrs.txt" "$W/g_ti_$k.txt"
+done
+python3 "$HERE/ti_coff.py" text "$HERE/coff/c.out" ti_text.bin >ti_text_pc.txt
+"$UNIDASM" ti_text.bin -arch tms34010 -basepc "$(cat ti_text_pc.txt)" >m_ti_out.txt
+echo "   c.obj (relocatable, $(grep -c "'" "$HERE/coff/c.lst") relocations applied by the loader):"
+python3 "$HERE/asm_check.py" check ti_obj.lst g_ti_obj.txt - | sed 's/^/     /'
+echo "   c.out (linked, .text at bit FF800000h):"
+python3 "$HERE/asm_check.py" check ti_out.lst g_ti_out.txt m_ti_out.txt | sed 's/^/     /'
+
 echo "== p-code emulator tests"
 python3 "$HERE/emu_tests.py" . >/dev/null
 gs emu.bin EmuCheck.java "$W/emu.txt" "$W/emu_res.txt"
@@ -69,6 +92,14 @@ python3 "$HERE/emu_tests.py" . --break 40 >/dev/null
 gs emu.bin EmuCheck.java "$W/emu.txt" "$W/emu_res_break.txt"
 echo "   with test 40's expectation made wrong: $(tail -1 emu_res_break.txt); $(grep FAIL emu_res_break.txt)"
 python3 "$HERE/emu_tests.py" . >/dev/null
+
+echo "== decompiler: TI C field size convention (compiler spec tic)"
+python3 -c "import sys; open('dc.bin','wb').write(bytes(0x20000) + bytes.fromhex(sys.argv[1]))" \
+	8f096400cd4da9b7e0ffaab7c0ff4941a8b7a0ff2841eeb78000af0900266209cfa360180e9240180e9220180e925f0d000010008807000004006009
+for c in default tic; do
+	CSPEC=$c "$HERE/ghidra-script.sh" raw tms34010:LE:32:default dc.bin Decomp.java "$W/dc_$c.c" 0x20000 0x2002e
+	echo "   $c: $(grep -c . dc_$c.c) lines, FS1 references: $(grep -c FS1 dc_$c.c || true); $(grep -m1 'return' dc_$c.c | sed 's/^ *//' | cut -c1-80)"
+done
 
 echo "== graphics vectors (birdybro/TMS34010_sv, MIT, MAME-recorded results)"
 SV=https://raw.githubusercontent.com/birdybro/TMS34010_sv/ef1b02eaee5569651616ce10405d2df8ed9f99b8/sim/vectors

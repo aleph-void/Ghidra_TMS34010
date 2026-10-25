@@ -3,7 +3,7 @@
 
   asm_check.py image <listing> <out.bin> <addrs.txt>     build the raw image (Ghidra address =
                                                            bit address / 8) and the address list
-  asm_check.py check <listing> <ghidra.txt> <mame.txt>     compare
+  asm_check.py check <listing> <ghidra.txt> <mame.txt|->  compare ('-': source only)
 
 The MAME file is unidasm output over the code region (-basepc = start bit address). For each
 instruction the source line from the listing is also compared with Ghidra's text (aliases,
@@ -156,7 +156,7 @@ def main():
         off, ln, text = line.rstrip('\n').split(' ', 2)
         g[int(off, 16)] = (int(ln), text)
     mm = {}
-    for line in open(sys.argv[4]):
+    for line in (open(sys.argv[4]) if sys.argv[4] != '-' else []):
         m = re.match(r'^([0-9a-f]+): ((?:[0-9a-f]{4} )+)\s*(.*)$', line.rstrip('\n') + ' ')
         if m:
             mm[int(m.group(1), 16)] = (len(m.group(2).split()) * 2, m.group(3).strip())
@@ -168,32 +168,32 @@ def main():
             cs['length'] += 1
             ds['length'].append(f'{a:x} {src} -> {gtext}')
             continue
-        # vs MAME
-        mlen, mtext = mm.get(a, (0, 'missing'))
-        mn, mops = C.norm_mame(mtext)
         gn, gops = C.norm_ghidra(gtext)
-        ok = mn == gn and len(mops) == len(gops) and mlen == glen
-        if ok:
-            for k, (x, y) in enumerate(zip(mops, gops)):
-                last = C.is_branch(mn) and k == len(mops) - 1
-                if last and (mn == 'CALLA' or mn.startswith('JA')):
-                    last = 'abs'
-                if not C.tok_eq(x, y, last):
-                    ok = False
-        if not ok and (int(words[0], 16) & 0xffe0) == 0x07e0 and mn == 'MOVE' and gn == 'MOVB':
-            cm['explained (MAME prints MOVB @a,Rd as MOVE)'] += 1
-        elif not ok and (int(words[0], 16) & 0xfbe0) == 0x2800 and mtext.split()[1].startswith('20h'):
-            cm['explained (MAME prints SRA/SRL 0 as 20h)'] += 1
-        elif ok:
-            cm['agree'] += 1
-        else:
-            cm['difference'] += 1
-            dm[gn].append(f'{a:x} mame "{mtext}" ghidra "{gtext}"')
+        if sys.argv[4] != '-':      # vs MAME
+            mlen, mtext = mm.get(a, (0, 'missing'))
+            mn, mops = C.norm_mame(mtext)
+            ok = mn == gn and len(mops) == len(gops) and mlen == glen
+            if ok:
+                for k, (x, y) in enumerate(zip(mops, gops)):
+                    last = C.is_branch(mn) and k == len(mops) - 1
+                    if last and (mn == 'CALLA' or mn.startswith('JA')):
+                        last = 'abs'
+                    if not C.tok_eq(x, y, last):
+                        ok = False
+            if not ok and (int(words[0], 16) & 0xffe0) == 0x07e0 and mn == 'MOVE' and gn == 'MOVB':
+                cm['explained (MAME prints MOVB @a,Rd as MOVE)'] += 1
+            elif not ok and (int(words[0], 16) & 0xfbe0) == 0x2800 and mtext.split()[1].startswith('20h'):
+                cm['explained (MAME prints SRA/SRL 0 as 20h)'] += 1
+            elif ok:
+                cm['agree'] += 1
+            else:
+                cm['difference'] += 1
+                dm[gn].append(f'{a:x} mame "{mtext}" ghidra "{gtext}"')
         # vs source
         sn, sops = norm_src(src, labels)
         if sn == 'DSJ' and gn == 'DSJS':
             sn = 'DSJS'
-            cs['gspa shortened DSJ to DSJS'] += 1
+            cs['assembler shortened DSJ to DSJS'] += 1
         if (int(words[0], 16) & 0xffe0) == 0x0ce0:
             cs['explained (gspa encodes SUBI IW,Rd with Rd other than A0 as 0CE0h|Rd)'] += 1
             ds['gspa SUBI bug'].append(f'{a:x} {words[0]} {src} -> {gtext}')
@@ -208,7 +208,8 @@ def main():
         else:
             cs['difference'] += 1
             ds[sn].append(f'{a:x} src "{src}" ghidra "{gtext}"')
-    print(f'vs MAME:   {dict(cm)}')
+    if cm:
+        print(f'vs MAME:   {dict(cm)}')
     for k in dm:
         print(f'  {len(dm[k])} {k}: ' + '; '.join(dm[k][:3]))
     print(f'vs source: {dict(cs)}')

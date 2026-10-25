@@ -1,0 +1,2307 @@
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE    1
+
+ 0001 00000000           	.text
+ 0002 00000000           K0:
+ 0003 00000000     4030  	add	B1,B0
+ 0004 00000010     43EF  	addc	SP,SP
+ 0005 00000020     4476  	sub	B3,B6
+ 0006 00000030     479D  	subb	B12,B13
+ 0007 00000040     48C9  	cmp	A6,A9
+ 0008 00000050     5177  	and	B11,B7
+ 0009 00000060     527B  	andn	B3,B11
+ 0010 00000070     5491  	or	B4,B1
+ 0011 00000080     56CB  	xor	A6,A11
+ 0012 00000090     58A7  	divs	A5,A7
+ 0013 000000A0     5ADC  	divu	B6,B12
+ 0014 000000B0     5C80  	mpys	A4,A0
+ 0015 000000C0     5FDA  	mpyu	B14,B10
+ 0016 000000D0     609D  	sla	B4,B13
+ 0017 000000E0     632A  	sll	A9,A10
+ 0018 000000F0     6454  	sra	B2,B4
+ 0019 00000100     6759  	srl	B10,B9
+ 0020 00000110     68F3  	rl	B7,B3
+ 0021 00000120     6ABF  	lmo	B5,SP
+ 0022 00000130     6C3B  	mods	B1,B11
+ 0023 00000140     6F67  	modu	A11,A7
+ 0024 00000150     E0C0  	addxy	A6,A0
+ 0025 00000160     E22C  	subxy	A1,A12
+ 0026 00000170     E5B3  	cmpxy	B13,B3
+ 0027 00000180     E768  	cpw	A11,A8
+ 0028 00000190     E802  	cvxyl	A0,A2
+ 0029 000001A0     ECB9  	movx	B5,B9
+ 0030 000001B0     EE9D  	movy	B4,B13
+ 0031 000001C0     F78C  	drav	A12,A12
+ 0032 000001D0     4B63  	btst	A11,A3
+ 0033 000001E0     4C87  	move	A4,A7
+ 0034 000001F0     0387  	abs	A7
+ 0035 00000200     03BD  	neg	B13
+ 0036 00000210     03DA  	negb	B10
+ 0037 00000220     03EB  	not	A11
+ 0038 00000230     012D  	exgpc	A13
+ 0039 00000240     0146  	getpc	A6
+ 0040 00000250     0164  	jump	A4
+ 0041 00000260     0196  	getst	B6
+ 0042 00000270     01AF  	putst	SP
+ 0043 00000280     092C  	call	A12
+ 0044 00000290     0300  	nop
+ 0045 000002A0     56C6  	clr	A6
+ 0046 000002B0     1031  	inc	B1
+ 0047 000002C0     142D  	dec	A13
+ 0048 000002D0     0300  	nop
+ 0049 000002E0     0320  	clrc
+ 0050 000002F0     0DE0  	setc
+ 0051 00000300     0360  	dint
+ 0052 00000310     0D60  	eint
+ 0053 00000320     01C0  	popst
+ 0054 00000330     01E0  	pushst
+ 0055 00000340     0940  	reti
+ 0056 00000350     0100  	emu
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE    2
+
+ 0057 00000360     125A  	addk	18,B10
+ 0058 00000370     1627  	subk	17,A7
+ 0059 00000380     19E3  	movk	15,A3
+ 0060 00000390     1D00  	btst	23,A0
+ 0061 000003A0     2011  	sla	0,B1
+ 0062 000003B0     2703  	sll	24,A3
+ 0063 000003C0     2A22  	sra	15,A2
+ 0064 000003D0     2E45  	srl	14,A5
+ 0065 000003E0     3338  	rl	25,B8
+ 0066 000003F0     0B0C  	addi	-11995,A12
+      00000400     D125  
+ 0067 00000410     0B21  	addi	01DF16946h,A1,l
+      00000420 1DF16946  
+ 0068 00000440     0B47  	cmpi	-8954,A7
+      00000450     22F9  
+ 0069 00000460     0B72  	cmpi	080CE43E3h,B2,l
+      00000470 7F31BC1C  
+ 0070 00000490     09D5  	movi	25627,B5
+      000004A0     641B  
+ 0071 000004B0     09F3  	movi	062819FCDh,B3,l
+      000004C0 62819FCD  
+ 0072 000004E0     0BE0  	subi	11475,A0
+      000004F0     D32C  
+ 0073 00000500     0D11  	subi	083C6305Ah,B1,l
+      00000510 7C39CFA5  
+ 0074 00000530     0B93  	andi	01B8F8C9Dh,B3
+      00000540 E4707362  
+ 0075 00000560     0B8E  	andni	0E198D014h,A14
+      00000570 E198D014  
+ 0076 00000590     0BB5  	ori	0DCAFDBB8h,B5
+      000005A0 DCAFDBB8  
+ 0077 000005C0     0BDA  	xori	0D1DAD59Ch,B10
+      000005D0 D1DAD59C  
+ 0078 000005F0     0503  	sext	A3,0
+ 0079 00000600     052B  	zext	A11,0
+ 0080 00000610     D712  	exgf	B2,1
+ 0081 00000620     076B  	setf	11,1,1
+ 0082 00000630     0975  	rets	21
+ 0083 00000640     0910  	trap	16
+ 0084 00000650     0983  	mmtm	A3,A9,A13
+      00000660     0044  
+ 0085 00000670     09AD  	mmfm	A13,A9,A13
+      00000680     2200  
+ 0086 00000690     81D3  	move	B14,*B3,0
+ 0087 000006A0     85D3  	move	*B14,B3,0
+ 0088 000006B0     89D3  	move	*B14,*B3,0
+ 0089 000006C0     91D3  	move	B14,*B3+,0
+ 0090 000006D0     95D3  	move	*B14+,B3,0
+ 0091 000006E0     99D3  	move	*B14+,*B3+,0
+ 0092 000006F0     A1D3  	move	B14,-*B3,0
+ 0093 00000700     A5D3  	move	-*B14,B3,0
+ 0094 00000710     A9D3  	move	-*B14,-*B3,0
+ 0095 00000720     B1D3  	move	B14,*B3(18976),0
+      00000730     4A20  
+ 0096 00000740     B5D3  	move	*B14(18976),B3,0
+      00000750     4A20  
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE    3
+
+ 0097 00000760     B9D3  	move	*B14(18976),*B3(22609),0
+      00000770     4A20  
+      00000780     5851  
+ 0098 00000790     D1D3  	move	*B14(18976),*B3+,0
+      000007A0     4A20  
+ 0099 000007B0     059E  	move	B14,@09C814234h,0
+      000007C0 9C814234  
+ 0100 000007E0     05B3  	move	@02F8DABC0h,B3,0
+      000007F0 2F8DABC0  
+ 0101 00000810     05C0  	move	@0AFD6B10Fh,@089B49835h,0
+      00000820 AFD6B10F  
+      00000840 89B49835  
+ 0102 00000860     D413  	move	@067C8E564h,*B3+,0
+      00000870 67C8E564  
+ 0103 00000890     4E9C  	move	B4,A12
+ 0104 000008A0     8DD3  	movb	B14,*B3
+ 0105 000008B0     8FD3  	movb	*B14,B3
+ 0106 000008C0     9DD3  	movb	*B14,*B3
+ 0107 000008D0     ADD3  	movb	B14,*B3(18976)
+      000008E0     4A20  
+ 0108 000008F0     AFD3  	movb	*B14(18976),B3
+      00000900     4A20  
+ 0109 00000910     BDD3  	movb	*B14(18976),*B3(22609)
+      00000920     4A20  
+      00000930     5851  
+ 0110 00000940     05FE  	movb	B14,@0DFA3E52Ah
+      00000950 DFA3E52A  
+ 0111 00000970     07F3  	movb	@02D0C05FDh,B3
+      00000980 2D0C05FD  
+ 0112 000009A0     0340  	movb	@0B31509CDh,@02A3DFD78h
+      000009B0 B31509CD  
+      000009D0 2A3DFD78  
+ 0113 000009F0     F9D3  	pixt	B14,*B3
+ 0114 00000A00     F1D3  	pixt	B14,*B3.xy
+ 0115 00000A10     FBD3  	pixt	*B14,B3
+ 0116 00000A20     F3D3  	pixt	*B14.xy,B3
+ 0117 00000A30     FDD3  	pixt	*B14,*B3
+ 0118 00000A40     F5D3  	pixt	*B14.xy,*B3.xy
+ 0119 00000A50     0F00  	pixblt	L,L
+ 0120 00000A60     0F20  	pixblt	L,XY
+ 0121 00000A70     0F40  	pixblt	XY,L
+ 0122 00000A80     0F60  	pixblt	XY,XY
+ 0123 00000A90     0F80  	pixblt	B,L
+ 0124 00000AA0     0FA0  	pixblt	B,XY
+ 0125 00000AB0     0FC0  	fill	L
+ 0126 00000AC0     0FE0  	fill	XY
+ 0127 00000AD0     DF1A  	line	0
+ 0128 00000AE0     C980  	janc	L1
+      00000AF0 00000BE0' 
+ 0129 00000B10     C980  	janc	L1
+      00000B20 00000BE0' 
+ 0130 00000B40     0DA8  	dsjeq	A8,L1
+      00000B50     0008  
+ 0131 00000B60     0DDD  	dsjne	B13,L1
+      00000B70     0006  
+ 0132 00000B80     38A8  	dsjs	A8,L1
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE    4
+
+ 0133 00000B90     0D3F  	callr	L1
+      00000BA0     0003  
+ 0134 00000BB0     0D5F  	calla	L1
+      00000BC0 00000BE0' 
+ 0135 00000BE0           L1:
+ 0136 00000BE0     3C2D  	dsjs	A13,L1
+ 0137 00000BF0     3C4E  	dsj	A14,L1
+ 0138 00000C00     0D8F  	dsj	SP,K0
+      00000C10     FF3E  
+ 0139 00000C20     CAFB  	jrz	L1
+ 0140 00000C30     C080  	jauc	K0
+      00000C40 00000000' 
+ 0141 00000C60           K1:
+ 0142 00000C60     40D6  	add	B6,B6
+ 0143 00000C70     4387  	addc	A12,A7
+ 0144 00000C80     444E  	sub	A2,A14
+ 0145 00000C90     4728  	subb	A9,A8
+ 0146 00000CA0     4994  	cmp	B12,B4
+ 0147 00000CB0     5131  	and	B9,B1
+ 0148 00000CC0     522B  	andn	A1,A11
+ 0149 00000CD0     55E7  	or	SP,A7
+ 0150 00000CE0     5689  	xor	A4,A9
+ 0151 00000CF0     59A3  	divs	A13,A3
+ 0152 00000D00     5A59  	divu	B2,B9
+ 0153 00000D10     5C5C  	mpys	B2,B12
+ 0154 00000D20     5F9A  	mpyu	B12,B10
+ 0155 00000D30     613E  	sla	B9,B14
+ 0156 00000D40     62AD  	sll	A5,A13
+ 0157 00000D50     649D  	sra	B4,B13
+ 0158 00000D60     662F  	srl	A1,SP
+ 0159 00000D70     68F7  	rl	B7,B7
+ 0160 00000D80     6B2F  	lmo	A9,SP
+ 0161 00000D90     6C22  	mods	A1,A2
+ 0162 00000DA0     6FF0  	modu	SP,B0
+ 0163 00000DB0     E0AE  	addxy	A5,A14
+ 0164 00000DC0     E291  	subxy	B4,B1
+ 0165 00000DD0     E579  	cmpxy	B11,B9
+ 0166 00000DE0     E68B  	cpw	A4,A11
+ 0167 00000DF0     E943  	cvxyl	A10,A3
+ 0168 00000E00     ECB9  	movx	B5,B9
+ 0169 00000E10     EEA8  	movy	A5,A8
+ 0170 00000E20     F74A  	drav	A10,A10
+ 0171 00000E30     4B76  	btst	B11,B6
+ 0172 00000E40     4D83  	move	A12,A3
+ 0173 00000E50     038D  	abs	A13
+ 0174 00000E60     03BC  	neg	B12
+ 0175 00000E70     03C1  	negb	A1
+ 0176 00000E80     03E3  	not	A3
+ 0177 00000E90     0137  	exgpc	B7
+ 0178 00000EA0     014A  	getpc	A10
+ 0179 00000EB0     0161  	jump	A1
+ 0180 00000EC0     0190  	getst	B0
+ 0181 00000ED0     01AF  	putst	SP
+ 0182 00000EE0     0920  	call	A0
+ 0183 00000EF0     0300  	nop
+ 0184 00000F00     56B5  	clr	B5
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE    5
+
+ 0185 00000F10     1035  	inc	B5
+ 0186 00000F20     1435  	dec	B5
+ 0187 00000F30     0300  	nop
+ 0188 00000F40     0320  	clrc
+ 0189 00000F50     0DE0  	setc
+ 0190 00000F60     0360  	dint
+ 0191 00000F70     0D60  	eint
+ 0192 00000F80     01C0  	popst
+ 0193 00000F90     01E0  	pushst
+ 0194 00000FA0     0940  	reti
+ 0195 00000FB0     0100  	emu
+ 0196 00000FC0     12C7  	addk	22,A7
+ 0197 00000FD0     155D  	subk	10,B13
+ 0198 00000FE0     1AA8  	movk	21,A8
+ 0199 00000FF0     1F1A  	btst	7,B10
+ 0200 00001000     2156  	sla	10,B6
+ 0201 00001010     275B  	sll	26,B11
+ 0202 00001020     2A67  	sra	13,A7
+ 0203 00001030     2F82  	srl	4,A2
+ 0204 00001040     3162  	rl	11,A2
+ 0205 00001050     0B03  	addi	22705,A3
+      00001060     58B1  
+ 0206 00001070     0B2A  	addi	0EE273624h,A10,l
+      00001080 EE273624  
+ 0207 000010A0     0B42  	cmpi	15057,A2
+      000010B0     C52E  
+ 0208 000010C0     0B78  	cmpi	05059F179h,B8,l
+      000010D0 AFA60E86  
+ 0209 000010F0     09CF  	movi	3730,SP
+      00001100     0E92  
+ 0210 00001110     09FE  	movi	01B3128B2h,B14,l
+      00001120 1B3128B2  
+ 0211 00001140     0BE0  	subi	-22245,A0
+      00001150     56E4  
+ 0212 00001160     0D0F  	subi	039DC5E3Dh,SP,l
+      00001170 C623A1C2  
+ 0213 00001190     0B86  	andi	0CE264B5Ch,A6
+      000011A0 31D9B4A3  
+ 0214 000011C0     0B9E  	andni	0DC1E157Ch,B14
+      000011D0 DC1E157C  
+ 0215 000011F0     0BB0  	ori	047FB046Bh,B0
+      00001200 47FB046B  
+ 0216 00001220     0BC8  	xori	03ACCE3C0h,A8
+      00001230 3ACCE3C0  
+ 0217 00001250     051B  	sext	B11,0
+ 0218 00001260     0733  	zext	B3,1
+ 0219 00001270     D70F  	exgf	SP,1
+ 0220 00001280     054B  	setf	11,0,0
+ 0221 00001290     097B  	rets	27
+ 0222 000012A0     0917  	trap	23
+ 0223 000012B0     0987  	mmtm	A7,A1,A8,A9,A14
+      000012C0     40C2  
+ 0224 000012D0     09A2  	mmfm	A2,A1,A8,A9,A14
+      000012E0     4302  
+ 0225 000012F0     8245  	move	A2,*A5,1
+ 0226 00001300     8645  	move	*A2,A5,1
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE    6
+
+ 0227 00001310     8A45  	move	*A2,*A5,1
+ 0228 00001320     9245  	move	A2,*A5+,1
+ 0229 00001330     9645  	move	*A2+,A5,1
+ 0230 00001340     9A45  	move	*A2+,*A5+,1
+ 0231 00001350     A245  	move	A2,-*A5,1
+ 0232 00001360     A645  	move	-*A2,A5,1
+ 0233 00001370     AA45  	move	-*A2,-*A5,1
+ 0234 00001380     B245  	move	A2,*A5(6035),1
+      00001390     1793  
+ 0235 000013A0     B645  	move	*A2(6035),A5,1
+      000013B0     1793  
+ 0236 000013C0     BA45  	move	*A2(6035),*A5(-18172),1
+      000013D0     1793  
+      000013E0     B904  
+ 0237 000013F0     D245  	move	*A2(6035),*A5+,1
+      00001400     1793  
+ 0238 00001410     0782  	move	A2,@08F0C6B69h,1
+      00001420 8F0C6B69  
+ 0239 00001440     07A5  	move	@0552F83EEh,A5,1
+      00001450 552F83EE  
+ 0240 00001470     07C0  	move	@0B3A68F8Fh,@089C91CFDh,1
+      00001480 B3A68F8F  
+      000014A0 89C91CFD  
+ 0241 000014C0     D605  	move	@0AC67EA08h,*A5+,1
+      000014D0 AC67EA08  
+ 0242 000014F0     4F90  	move	B12,A0
+ 0243 00001500     8C45  	movb	A2,*A5
+ 0244 00001510     8E45  	movb	*A2,A5
+ 0245 00001520     9C45  	movb	*A2,*A5
+ 0246 00001530     AC45  	movb	A2,*A5(6035)
+      00001540     1793  
+ 0247 00001550     AE45  	movb	*A2(6035),A5
+      00001560     1793  
+ 0248 00001570     BC45  	movb	*A2(6035),*A5(-18172)
+      00001580     1793  
+      00001590     B904  
+ 0249 000015A0     05E2  	movb	A2,@0C57F7172h
+      000015B0 C57F7172  
+ 0250 000015D0     07E5  	movb	@044E0577Eh,A5
+      000015E0 44E0577E  
+ 0251 00001600     0340  	movb	@0AAE49AEDh,@01C55AB7Eh
+      00001610 AAE49AED  
+      00001630 1C55AB7E  
+ 0252 00001650     F845  	pixt	A2,*A5
+ 0253 00001660     F045  	pixt	A2,*A5.xy
+ 0254 00001670     FA45  	pixt	*A2,A5
+ 0255 00001680     F245  	pixt	*A2.xy,A5
+ 0256 00001690     FC45  	pixt	*A2,*A5
+ 0257 000016A0     F445  	pixt	*A2.xy,*A5.xy
+ 0258 000016B0     0F00  	pixblt	L,L
+ 0259 000016C0     0F20  	pixblt	L,XY
+ 0260 000016D0     0F40  	pixblt	XY,L
+ 0261 000016E0     0F60  	pixblt	XY,XY
+ 0262 000016F0     0F80  	pixblt	B,L
+ 0263 00001700     0FA0  	pixblt	B,XY
+ 0264 00001710     0FC0  	fill	L
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE    7
+
+ 0265 00001720     0FE0  	fill	XY
+ 0266 00001730     DF1A  	line	0
+ 0267 00001740     C880  	jab	L2
+      00001750 00001840' 
+ 0268 00001770     CB80  	jane	L2
+      00001780 00001840' 
+ 0269 000017A0     0DB0  	dsjeq	B0,L2
+      000017B0     0008  
+ 0270 000017C0     0DD9  	dsjne	B9,L2
+      000017D0     0006  
+ 0271 000017E0     38A1  	dsjs	A1,L2
+ 0272 000017F0     0D3F  	callr	L2
+      00001800     0003  
+ 0273 00001810     0D5F  	calla	L2
+      00001820 00001840' 
+ 0274 00001840           L2:
+ 0275 00001840     3C37  	dsjs	B7,L2
+ 0276 00001850     3C55  	dsj	B5,L2
+ 0277 00001860     0D9B  	dsj	B11,K1
+      00001870     FF3E  
+ 0278 00001880     CDFB  	jrnv	L2
+ 0279 00001890     C980  	janb	K1
+      000018A0 00000C60' 
+ 0280 000018C0           K2:
+ 0281 000018C0     41D4  	add	B14,B4
+ 0282 000018D0     42BB  	addc	B5,B11
+ 0283 000018E0     44B0  	sub	B5,B0
+ 0284 000018F0     46E9  	subb	A7,A9
+ 0285 00001900     490D  	cmp	A8,A13
+ 0286 00001910     5179  	and	B11,B9
+ 0287 00001920     53F0  	andn	SP,B0
+ 0288 00001930     5407  	or	A0,A7
+ 0289 00001940     56F1  	xor	B7,B1
+ 0290 00001950     5947  	divs	A10,A7
+ 0291 00001960     5B4C  	divu	A10,A12
+ 0292 00001970     5C68  	mpys	A3,A8
+ 0293 00001980     5F5A  	mpyu	B10,B10
+ 0294 00001990     6044  	sla	A2,A4
+ 0295 000019A0     63B3  	sll	B13,B3
+ 0296 000019B0     64FA  	sra	B7,B10
+ 0297 000019C0     663C  	srl	B1,B12
+ 0298 000019D0     688F  	rl	A4,SP
+ 0299 000019E0     6B8E  	lmo	A12,A14
+ 0300 000019F0     6D21  	mods	A9,A1
+ 0301 00001A00     6F8D  	modu	A12,A13
+ 0302 00001A10     E0FA  	addxy	B7,B10
+ 0303 00001A20     E274  	subxy	B3,B4
+ 0304 00001A30     E443  	cmpxy	A2,A3
+ 0305 00001A40     E6DB  	cpw	B6,B11
+ 0306 00001A50     E8A7  	cvxyl	A5,A7
+ 0307 00001A60     EC8D  	movx	A4,A13
+ 0308 00001A70     EF5D  	movy	B10,B13
+ 0309 00001A80     F665  	drav	A3,A5
+ 0310 00001A90     4A2A  	btst	A1,A10
+ 0311 00001AA0     4C96  	move	B4,B6
+ 0312 00001AB0     0393  	abs	B3
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE    8
+
+ 0313 00001AC0     03A9  	neg	A9
+ 0314 00001AD0     03C7  	negb	A7
+ 0315 00001AE0     03FA  	not	B10
+ 0316 00001AF0     0128  	exgpc	A8
+ 0317 00001B00     014B  	getpc	A11
+ 0318 00001B10     0171  	jump	B1
+ 0319 00001B20     018E  	getst	A14
+ 0320 00001B30     01A9  	putst	A9
+ 0321 00001B40     0936  	call	B6
+ 0322 00001B50     0300  	nop
+ 0323 00001B60     57BD  	clr	B13
+ 0324 00001B70     1020  	inc	A0
+ 0325 00001B80     142E  	dec	A14
+ 0326 00001B90     0300  	nop
+ 0327 00001BA0     0320  	clrc
+ 0328 00001BB0     0DE0  	setc
+ 0329 00001BC0     0360  	dint
+ 0330 00001BD0     0D60  	eint
+ 0331 00001BE0     01C0  	popst
+ 0332 00001BF0     01E0  	pushst
+ 0333 00001C00     0940  	reti
+ 0334 00001C10     0100  	emu
+ 0335 00001C20     134F  	addk	26,SP
+ 0336 00001C30     14B5  	subk	5,B5
+ 0337 00001C40     1A3C  	movk	17,B12
+ 0338 00001C50     1FE3  	btst	0,A3
+ 0339 00001C60     22E5  	sla	23,A5
+ 0340 00001C70     2734  	sll	25,B4
+ 0341 00001C80     29FB  	sra	17,B11
+ 0342 00001C90     2C7C  	srl	29,B12
+ 0343 00001CA0     30FA  	rl	7,B10
+ 0344 00001CB0     0B0F  	addi	964,SP
+      00001CC0     03C4  
+ 0345 00001CD0     0B38  	addi	0E461E466h,B8,l
+      00001CE0 E461E466  
+ 0346 00001D00     0B44  	cmpi	-30254,A4
+      00001D10     762D  
+ 0347 00001D20     0B7B  	cmpi	0176183BAh,B11,l
+      00001D30 E89E7C45  
+ 0348 00001D50     09C0  	movi	-29793,A0
+      00001D60     8B9F  
+ 0349 00001D70     09FE  	movi	0E6DC383h,B14,l
+      00001D80 0E6DC383  
+ 0350 00001DA0     0BE0  	subi	25980,A0
+      00001DB0     9A83  
+ 0351 00001DC0     0D1C  	subi	05F219881h,B12,l
+      00001DD0 A0DE677E  
+ 0352 00001DF0     0B90  	andi	0E7AF131Dh,B0
+      00001E00 1850ECE2  
+ 0353 00001E20     0B8C  	andni	06F27CAECh,A12
+      00001E30 6F27CAEC  
+ 0354 00001E50     0BB2  	ori	01C6E1096h,B2
+      00001E60 1C6E1096  
+ 0355 00001E80     0BD3  	xori	01183091h,B3
+      00001E90 01183091  
+ 0356 00001EB0     0511  	sext	B1,0
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE    9
+
+ 0357 00001EC0     0730  	zext	B0,1
+ 0358 00001ED0     D51C  	exgf	B12,0
+ 0359 00001EE0     0558  	setf	24,0,0
+ 0360 00001EF0     0969  	rets	9
+ 0361 00001F00     0913  	trap	19
+ 0362 00001F10     0986  	mmtm	A6,A3,A6,A7,A9
+      00001F20     1340  
+ 0363 00001F30     09AC  	mmfm	A12,A3,A6,A7,A9
+      00001F40     02C8  
+ 0364 00001F50     821F  	move	B0,*SP,1
+ 0365 00001F60     861F  	move	*B0,SP,1
+ 0366 00001F70     8A1F  	move	*B0,*SP,1
+ 0367 00001F80     921F  	move	B0,*SP+,1
+ 0368 00001F90     961F  	move	*B0+,SP,1
+ 0369 00001FA0     9A1F  	move	*B0+,*SP+,1
+ 0370 00001FB0     A21F  	move	B0,-*SP,1
+ 0371 00001FC0     A61F  	move	-*B0,SP,1
+ 0372 00001FD0     AA1F  	move	-*B0,-*SP,1
+ 0373 00001FE0     B21F  	move	B0,*SP(12983),1
+      00001FF0     32B7  
+ 0374 00002000     B61F  	move	*B0(12983),SP,1
+      00002010     32B7  
+ 0375 00002020     BA1F  	move	*B0(12983),*SP(16414),1
+      00002030     32B7  
+      00002040     401E  
+ 0376 00002050     D21F  	move	*B0(12983),*SP+,1
+      00002060     32B7  
+ 0377 00002070     0790  	move	B0,@0F3A7763h,1
+      00002080 0F3A7763  
+ 0378 000020A0     07AF  	move	@02C7D96B3h,SP,1
+      000020B0 2C7D96B3  
+ 0379 000020D0     07C0  	move	@076381BFFh,@04521EC7Ch,1
+      000020E0 76381BFF  
+      00002100 4521EC7C  
+ 0380 00002120     D60F  	move	@0C811CAAFh,*SP+,1
+      00002130 C811CAAF  
+ 0381 00002150     4FA3  	move	A13,B3
+ 0382 00002160     8C1F  	movb	B0,*SP
+ 0383 00002170     8E1F  	movb	*B0,SP
+ 0384 00002180     9C1F  	movb	*B0,*SP
+ 0385 00002190     AC1F  	movb	B0,*SP(12983)
+      000021A0     32B7  
+ 0386 000021B0     AE1F  	movb	*B0(12983),SP
+      000021C0     32B7  
+ 0387 000021D0     BC1F  	movb	*B0(12983),*SP(16414)
+      000021E0     32B7  
+      000021F0     401E  
+ 0388 00002200     05F0  	movb	B0,@0F3C3BEA6h
+      00002210 F3C3BEA6  
+ 0389 00002230     07EF  	movb	@05826B577h,SP
+      00002240 5826B577  
+ 0390 00002260     0340  	movb	@08F299691h,@0692A80DBh
+      00002270 8F299691  
+      00002290 692A80DB  
+ 0391 000022B0     F81F  	pixt	B0,*SP
+ 0392 000022C0     F01F  	pixt	B0,*SP.xy
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   10
+
+ 0393 000022D0     FA1F  	pixt	*B0,SP
+ 0394 000022E0     F21F  	pixt	*B0.xy,SP
+ 0395 000022F0     FC1F  	pixt	*B0,*SP
+ 0396 00002300     F41F  	pixt	*B0.xy,*SP.xy
+ 0397 00002310     0F00  	pixblt	L,L
+ 0398 00002320     0F20  	pixblt	L,XY
+ 0399 00002330     0F40  	pixblt	XY,L
+ 0400 00002340     0F60  	pixblt	XY,XY
+ 0401 00002350     0F80  	pixblt	B,L
+ 0402 00002360     0FA0  	pixblt	B,XY
+ 0403 00002370     0FC0  	fill	L
+ 0404 00002380     0FE0  	fill	XY
+ 0405 00002390     DF9A  	line	1
+ 0406 000023A0     C880  	jab	L3
+      000023B0 000024A0' 
+ 0407 000023D0     C880  	jab	L3
+      000023E0 000024A0' 
+ 0408 00002400     0DA3  	dsjeq	A3,L3
+      00002410     0008  
+ 0409 00002420     0DC1  	dsjne	A1,L3
+      00002430     0006  
+ 0410 00002440     38A8  	dsjs	A8,L3
+ 0411 00002450     0D3F  	callr	L3
+      00002460     0003  
+ 0412 00002470     0D5F  	calla	L3
+      00002480 000024A0' 
+ 0413 000024A0           L3:
+ 0414 000024A0     3C35  	dsjs	B5,L3
+ 0415 000024B0     3C5A  	dsj	B10,L3
+ 0416 000024C0     0D8C  	dsj	A12,K2
+      000024D0     FF3E  
+ 0417 000024E0     CAFB  	jreq	L3
+ 0418 000024F0     C780  	jagt	K2
+      00002500 000018C0' 
+ 0419 00002520           K3:
+ 0420 00002520     4030  	add	B1,B0
+ 0421 00002530     4321  	addc	A9,A1
+ 0422 00002540     44E6  	sub	A7,A6
+ 0423 00002550     47D8  	subb	B14,B8
+ 0424 00002560     49FD  	cmp	SP,B13
+ 0425 00002570     514E  	and	A10,A14
+ 0426 00002580     5332  	andn	B9,B2
+ 0427 00002590     5538  	or	B9,B8
+ 0428 000025A0     57C1  	xor	A14,A1
+ 0429 000025B0     594C  	divs	A10,A12
+ 0430 000025C0     5AA7  	divu	A5,A7
+ 0431 000025D0     5D37  	mpys	B9,B7
+ 0432 000025E0     5F57  	mpyu	B10,B7
+ 0433 000025F0     6172  	sla	B11,B2
+ 0434 00002600     62EF  	sll	A7,SP
+ 0435 00002610     646B  	sra	A3,A11
+ 0436 00002620     677B  	srl	B11,B11
+ 0437 00002630     6951  	rl	B10,B1
+ 0438 00002640     6BB8  	lmo	B13,B8
+ 0439 00002650     6D6C  	mods	A11,A12
+ 0440 00002660     6E51  	modu	B2,B1
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   11
+
+ 0441 00002670     E1E2  	addxy	SP,A2
+ 0442 00002680     E333  	subxy	B9,B3
+ 0443 00002690     E458  	cmpxy	B2,B8
+ 0444 000026A0     E604  	cpw	A0,A4
+ 0445 000026B0     E9B1  	cvxyl	B13,B1
+ 0446 000026C0     EC49  	movx	A2,A9
+ 0447 000026D0     EEA6  	movy	A5,A6
+ 0448 000026E0     F61E  	drav	B0,B14
+ 0449 000026F0     4B70  	btst	B11,B0
+ 0450 00002700     4CFD  	move	B7,B13
+ 0451 00002710     038A  	abs	A10
+ 0452 00002720     03BE  	neg	B14
+ 0453 00002730     03D0  	negb	B0
+ 0454 00002740     03F4  	not	B4
+ 0455 00002750     0122  	exgpc	A2
+ 0456 00002760     0159  	getpc	B9
+ 0457 00002770     0178  	jump	B8
+ 0458 00002780     018F  	getst	SP
+ 0459 00002790     01A1  	putst	A1
+ 0460 000027A0     092F  	call	SP
+ 0461 000027B0     0300  	nop
+ 0462 000027C0     579C  	clr	B12
+ 0463 000027D0     1022  	inc	A2
+ 0464 000027E0     1421  	dec	A1
+ 0465 000027F0     0300  	nop
+ 0466 00002800     0320  	clrc
+ 0467 00002810     0DE0  	setc
+ 0468 00002820     0360  	dint
+ 0469 00002830     0D60  	eint
+ 0470 00002840     01C0  	popst
+ 0471 00002850     01E0  	pushst
+ 0472 00002860     0940  	reti
+ 0473 00002870     0100  	emu
+ 0474 00002880     10C7  	addk	6,A7
+ 0475 00002890     1689  	subk	20,A9
+ 0476 000028A0     18ED  	movk	7,A13
+ 0477 000028B0     1EA6  	btst	10,A6
+ 0478 000028C0     2196  	sla	12,B6
+ 0479 000028D0     24F4  	sll	7,B4
+ 0480 000028E0     281C  	sra	0,B12
+ 0481 000028F0     2C4F  	srl	30,SP
+ 0482 00002900     32EF  	rl	23,SP
+ 0483 00002910     0B08  	addi	-32013,A8
+      00002920     82F3  
+ 0484 00002930     0B25  	addi	086196A07h,A5,l
+      00002940 86196A07  
+ 0485 00002960     0B5A  	cmpi	12391,B10
+      00002970     CF98  
+ 0486 00002980     0B6D  	cmpi	044116449h,A13,l
+      00002990 BBEE9BB6  
+ 0487 000029B0     09D5  	movi	-29729,B5
+      000029C0     8BDF  
+ 0488 000029D0     09ED  	movi	030FC0391h,A13,l
+      000029E0 30FC0391  
+ 0489 00002A00     0BE0  	subi	13298,A0
+      00002A10     CC0D  
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   12
+
+ 0490 00002A20     0D0B  	subi	04CC8F4B2h,A11,l
+      00002A30 B3370B4D  
+ 0491 00002A50     0B98  	andi	046CBAE05h,B8
+      00002A60 B93451FA  
+ 0492 00002A80     0B83  	andni	066A98ECBh,A3
+      00002A90 66A98ECB  
+ 0493 00002AB0     0BB4  	ori	043501F97h,B4
+      00002AC0 43501F97  
+ 0494 00002AE0     0BCF  	xori	0E7281839h,SP
+      00002AF0 E7281839  
+ 0495 00002B10     0505  	sext	A5,0
+ 0496 00002B20     072A  	zext	A10,1
+ 0497 00002B30     D710  	exgf	B0,1
+ 0498 00002B40     0779  	setf	25,1,1
+ 0499 00002B50     0975  	rets	21
+ 0500 00002B60     0911  	trap	17
+ 0501 00002B70     099B  	mmtm	B11,B8
+      00002B80     0080  
+ 0502 00002B90     09B2  	mmfm	B2,B8
+      00002BA0     0100  
+ 0503 00002BB0     82B3  	move	B5,*B3,1
+ 0504 00002BC0     86B3  	move	*B5,B3,1
+ 0505 00002BD0     8AB3  	move	*B5,*B3,1
+ 0506 00002BE0     92B3  	move	B5,*B3+,1
+ 0507 00002BF0     96B3  	move	*B5+,B3,1
+ 0508 00002C00     9AB3  	move	*B5+,*B3+,1
+ 0509 00002C10     A2B3  	move	B5,-*B3,1
+ 0510 00002C20     A6B3  	move	-*B5,B3,1
+ 0511 00002C30     AAB3  	move	-*B5,-*B3,1
+ 0512 00002C40     B2B3  	move	B5,*B3(-15637),1
+      00002C50     C2EB  
+ 0513 00002C60     B6B3  	move	*B5(-15637),B3,1
+      00002C70     C2EB  
+ 0514 00002C80     BAB3  	move	*B5(-15637),*B3(-6135),1
+      00002C90     C2EB  
+      00002CA0     E809  
+ 0515 00002CB0     D2B3  	move	*B5(-15637),*B3+,1
+      00002CC0     C2EB  
+ 0516 00002CD0     0795  	move	B5,@076B10C08h,1
+      00002CE0 76B10C08  
+ 0517 00002D00     07B3  	move	@065E24C60h,B3,1
+      00002D10 65E24C60  
+ 0518 00002D30     07C0  	move	@07ADA3E42h,@05D0F4F26h,1
+      00002D40 7ADA3E42  
+      00002D60 5D0F4F26  
+ 0519 00002D80     D613  	move	@098569B9Dh,*B3+,1
+      00002D90 98569B9D  
+ 0520 00002DB0     4E82  	move	A4,B2
+ 0521 00002DC0     8CB3  	movb	B5,*B3
+ 0522 00002DD0     8EB3  	movb	*B5,B3
+ 0523 00002DE0     9CB3  	movb	*B5,*B3
+ 0524 00002DF0     ACB3  	movb	B5,*B3(-15637)
+      00002E00     C2EB  
+ 0525 00002E10     AEB3  	movb	*B5(-15637),B3
+      00002E20     C2EB  
+ 0526 00002E30     BCB3  	movb	*B5(-15637),*B3(-6135)
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   13
+
+      00002E40     C2EB  
+      00002E50     E809  
+ 0527 00002E60     05F5  	movb	B5,@03B3FC084h
+      00002E70 3B3FC084  
+ 0528 00002E90     07F3  	movb	@020FCFFEBh,B3
+      00002EA0 20FCFFEB  
+ 0529 00002EC0     0340  	movb	@0596797E2h,@090DF1BE8h
+      00002ED0 596797E2  
+      00002EF0 90DF1BE8  
+ 0530 00002F10     F8B3  	pixt	B5,*B3
+ 0531 00002F20     F0B3  	pixt	B5,*B3.xy
+ 0532 00002F30     FAB3  	pixt	*B5,B3
+ 0533 00002F40     F2B3  	pixt	*B5.xy,B3
+ 0534 00002F50     FCB3  	pixt	*B5,*B3
+ 0535 00002F60     F4B3  	pixt	*B5.xy,*B3.xy
+ 0536 00002F70     0F00  	pixblt	L,L
+ 0537 00002F80     0F20  	pixblt	L,XY
+ 0538 00002F90     0F40  	pixblt	XY,L
+ 0539 00002FA0     0F60  	pixblt	XY,XY
+ 0540 00002FB0     0F80  	pixblt	B,L
+ 0541 00002FC0     0FA0  	pixblt	B,XY
+ 0542 00002FD0     0FC0  	fill	L
+ 0543 00002FE0     0FE0  	fill	XY
+ 0544 00002FF0     DF9A  	line	1
+ 0545 00003000     CE80  	jan	L4
+      00003010 00003100' 
+ 0546 00003030     C080  	jauc	L4
+      00003040 00003100' 
+ 0547 00003060     0DA4  	dsjeq	A4,L4
+      00003070     0008  
+ 0548 00003080     0DDD  	dsjne	B13,L4
+      00003090     0006  
+ 0549 000030A0     38B4  	dsjs	B4,L4
+ 0550 000030B0     0D3F  	callr	L4
+      000030C0     0003  
+ 0551 000030D0     0D5F  	calla	L4
+      000030E0 00003100' 
+ 0552 00003100           L4:
+ 0553 00003100     3C24  	dsjs	A4,L4
+ 0554 00003110     3C40  	dsj	A0,L4
+ 0555 00003120     0D87  	dsj	A7,K3
+      00003130     FF3E  
+ 0556 00003140     C8FB  	jrb	L4
+ 0557 00003150     C280  	jals	K3
+      00003160 00002520' 
+ 0558 00003180           K4:
+ 0559 00003180     4064  	add	A3,A4
+ 0560 00003190     43C6  	addc	A14,A6
+ 0561 000031A0     445F  	sub	B2,SP
+ 0562 000031B0     472B  	subb	A9,A11
+ 0563 000031C0     4958  	cmp	B10,B8
+ 0564 000031D0     5003  	and	A0,A3
+ 0565 000031E0     531B  	andn	B8,B11
+ 0566 000031F0     55EF  	or	SP,SP
+ 0567 00003200     57C8  	xor	A14,A8
+ 0568 00003210     58BA  	divs	B5,B10
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   14
+
+ 0569 00003220     5B5A  	divu	B10,B10
+ 0570 00003230     5DEA  	mpys	SP,A10
+ 0571 00003240     5E56  	mpyu	B2,B6
+ 0572 00003250     61D5  	sla	B14,B5
+ 0573 00003260     63D6  	sll	B14,B6
+ 0574 00003270     6564  	sra	A11,A4
+ 0575 00003280     676F  	srl	A11,SP
+ 0576 00003290     6879  	rl	B3,B9
+ 0577 000032A0     6A98  	lmo	B4,B8
+ 0578 000032B0     6C78  	mods	B3,B8
+ 0579 000032C0     6F67  	modu	A11,A7
+ 0580 000032D0     E1C4  	addxy	A14,A4
+ 0581 000032E0     E382  	subxy	A12,A2
+ 0582 000032F0     E4C2  	cmpxy	A6,A2
+ 0583 00003300     E6E8  	cpw	A7,A8
+ 0584 00003310     E9AE  	cvxyl	A13,A14
+ 0585 00003320     EC5E  	movx	B2,B14
+ 0586 00003330     EF3E  	movy	B9,B14
+ 0587 00003340     F7B4  	drav	B13,B4
+ 0588 00003350     4AAB  	btst	A5,A11
+ 0589 00003360     4CD8  	move	B6,B8
+ 0590 00003370     0385  	abs	A5
+ 0591 00003380     03A6  	neg	A6
+ 0592 00003390     03D6  	negb	B6
+ 0593 000033A0     03E5  	not	A5
+ 0594 000033B0     0126  	exgpc	A6
+ 0595 000033C0     015B  	getpc	B11
+ 0596 000033D0     017A  	jump	B10
+ 0597 000033E0     0187  	getst	A7
+ 0598 000033F0     01B3  	putst	B3
+ 0599 00003400     0936  	call	B6
+ 0600 00003410     0300  	nop
+ 0601 00003420     5621  	clr	A1
+ 0602 00003430     1028  	inc	A8
+ 0603 00003440     1426  	dec	A6
+ 0604 00003450     0300  	nop
+ 0605 00003460     0320  	clrc
+ 0606 00003470     0DE0  	setc
+ 0607 00003480     0360  	dint
+ 0608 00003490     0D60  	eint
+ 0609 000034A0     01C0  	popst
+ 0610 000034B0     01E0  	pushst
+ 0611 000034C0     0940  	reti
+ 0612 000034D0     0100  	emu
+ 0613 000034E0     121E  	addk	16,B14
+ 0614 000034F0     1606  	subk	16,A6
+ 0615 00003500     1A5A  	movk	18,B10
+ 0616 00003510     1DF4  	btst	16,B4
+ 0617 00003520     2082  	sla	4,A2
+ 0618 00003530     26D1  	sll	22,B1
+ 0619 00003540     29B3  	sra	19,B3
+ 0620 00003550     2CD1  	srl	26,B1
+ 0621 00003560     31E6  	rl	15,A6
+ 0622 00003570     0B1D  	addi	9813,B13
+      00003580     2655  
+ 0623 00003590     0B21  	addi	085488378h,A1,l
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   15
+
+      000035A0 85488378  
+ 0624 000035C0     0B43  	cmpi	-11003,A3
+      000035D0     2AFA  
+ 0625 000035E0     0B74  	cmpi	03FD173A3h,B4,l
+      000035F0 C02E8C5C  
+ 0626 00003610     09D6  	movi	-8943,B6
+      00003620     DD11  
+ 0627 00003630     09E4  	movi	0F54537Ah,A4,l
+      00003640 0F54537A  
+ 0628 00003660     0BE0  	subi	-1012,A0
+      00003670     03F3  
+ 0629 00003680     0D0F  	subi	0EDA81380h,SP,l
+      00003690 1257EC7F  
+ 0630 000036B0     0B91  	andi	0ED8B0B32h,B1
+      000036C0 1274F4CD  
+ 0631 000036E0     0B99  	andni	05F497C88h,B9
+      000036F0 5F497C88  
+ 0632 00003710     0BAB  	ori	0C6480488h,A11
+      00003720 C6480488  
+ 0633 00003740     0BD8  	xori	0CE9EAA08h,B8
+      00003750 CE9EAA08  
+ 0634 00003770     071B  	sext	B11,1
+ 0635 00003780     052C  	zext	A12,0
+ 0636 00003790     D719  	exgf	B9,1
+ 0637 000037A0     056C  	setf	12,1,0
+ 0638 000037B0     097C  	rets	28
+ 0639 000037C0     091A  	trap	26
+ 0640 000037D0     0995  	mmtm	B5,B3,B4
+      000037E0     1800  
+ 0641 000037F0     09BA  	mmfm	B10,B3,B4
+      00003800     0018  
+ 0642 00003810     814F  	move	A10,*SP,0
+ 0643 00003820     854F  	move	*A10,SP,0
+ 0644 00003830     894F  	move	*A10,*SP,0
+ 0645 00003840     914F  	move	A10,*SP+,0
+ 0646 00003850     954F  	move	*A10+,SP,0
+ 0647 00003860     994F  	move	*A10+,*SP+,0
+ 0648 00003870     A14F  	move	A10,-*SP,0
+ 0649 00003880     A54F  	move	-*A10,SP,0
+ 0650 00003890     A94F  	move	-*A10,-*SP,0
+ 0651 000038A0     B14F  	move	A10,*SP(-32479),0
+      000038B0     8121  
+ 0652 000038C0     B54F  	move	*A10(-32479),SP,0
+      000038D0     8121  
+ 0653 000038E0     B94F  	move	*A10(-32479),*SP(-16408),0
+      000038F0     8121  
+      00003900     BFE8  
+ 0654 00003910     D14F  	move	*A10(-32479),*SP+,0
+      00003920     8121  
+ 0655 00003930     058A  	move	A10,@0FA1130E3h,0
+      00003940 FA1130E3  
+ 0656 00003960     05AF  	move	@015114855h,SP,0
+      00003970 15114855  
+ 0657 00003990     05C0  	move	@0BFB69352h,@0221BB78Eh,0
+      000039A0 BFB69352  
+      000039C0 221BB78E  
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   16
+
+ 0658 000039E0     D40F  	move	@0611DA8Dh,*SP+,0
+      000039F0 0611DA8D  
+ 0659 00003A10     4EEB  	move	A7,B11
+ 0660 00003A20     8D4F  	movb	A10,*SP
+ 0661 00003A30     8F4F  	movb	*A10,SP
+ 0662 00003A40     9D4F  	movb	*A10,*SP
+ 0663 00003A50     AD4F  	movb	A10,*SP(-32479)
+      00003A60     8121  
+ 0664 00003A70     AF4F  	movb	*A10(-32479),SP
+      00003A80     8121  
+ 0665 00003A90     BD4F  	movb	*A10(-32479),*SP(-16408)
+      00003AA0     8121  
+      00003AB0     BFE8  
+ 0666 00003AC0     05EA  	movb	A10,@0185CECF0h
+      00003AD0 185CECF0  
+ 0667 00003AF0     07EF  	movb	@09B3F80Eh,SP
+      00003B00 09B3F80E  
+ 0668 00003B20     0340  	movb	@0C3CABE14h,@02C14C931h
+      00003B30 C3CABE14  
+      00003B50 2C14C931  
+ 0669 00003B70     F94F  	pixt	A10,*SP
+ 0670 00003B80     F14F  	pixt	A10,*SP.xy
+ 0671 00003B90     FB4F  	pixt	*A10,SP
+ 0672 00003BA0     F34F  	pixt	*A10.xy,SP
+ 0673 00003BB0     FD4F  	pixt	*A10,*SP
+ 0674 00003BC0     F54F  	pixt	*A10.xy,*SP.xy
+ 0675 00003BD0     0F00  	pixblt	L,L
+ 0676 00003BE0     0F20  	pixblt	L,XY
+ 0677 00003BF0     0F40  	pixblt	XY,L
+ 0678 00003C00     0F60  	pixblt	XY,XY
+ 0679 00003C10     0F80  	pixblt	B,L
+ 0680 00003C20     0FA0  	pixblt	B,XY
+ 0681 00003C30     0FC0  	fill	L
+ 0682 00003C40     0FE0  	fill	XY
+ 0683 00003C50     DF1A  	line	0
+ 0684 00003C60     CB80  	janz	L5
+      00003C70 00003D60' 
+ 0685 00003C90     C180  	jap	L5
+      00003CA0 00003D60' 
+ 0686 00003CC0     0DAC  	dsjeq	A12,L5
+      00003CD0     0008  
+ 0687 00003CE0     0DCD  	dsjne	A13,L5
+      00003CF0     0006  
+ 0688 00003D00     38AF  	dsjs	SP,L5
+ 0689 00003D10     0D3F  	callr	L5
+      00003D20     0003  
+ 0690 00003D30     0D5F  	calla	L5
+      00003D40 00003D60' 
+ 0691 00003D60           L5:
+ 0692 00003D60     3C3D  	dsjs	B13,L5
+ 0693 00003D70     3C47  	dsj	A7,L5
+ 0694 00003D80     0D99  	dsj	B9,K4
+      00003D90     FF3E  
+ 0695 00003DA0     CBFB  	jrne	L5
+ 0696 00003DB0     C880  	jab	K4
+      00003DC0 00003180' 
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   17
+
+ 0697 00003DE0           K5:
+ 0698 00003DE0     4014  	add	B0,B4
+ 0699 00003DF0     43E9  	addc	SP,A9
+ 0700 00003E00     4542  	sub	A10,A2
+ 0701 00003E10     471C  	subb	B8,B12
+ 0702 00003E20     488D  	cmp	A4,A13
+ 0703 00003E30     5188  	and	A12,A8
+ 0704 00003E40     52A6  	andn	A5,A6
+ 0705 00003E50     5433  	or	B1,B3
+ 0706 00003E60     5699  	xor	B4,B9
+ 0707 00003E70     5956  	divs	B10,B6
+ 0708 00003E80     5A9C  	divu	B4,B12
+ 0709 00003E90     5C43  	mpys	A2,A3
+ 0710 00003EA0     5EB7  	mpyu	B5,B7
+ 0711 00003EB0     6173  	sla	B11,B3
+ 0712 00003EC0     6240  	sll	A2,A0
+ 0713 00003ED0     6575  	sra	B11,B5
+ 0714 00003EE0     6735  	srl	B9,B5
+ 0715 00003EF0     6992  	rl	B12,B2
+ 0716 00003F00     6AC7  	lmo	A6,A7
+ 0717 00003F10     6CE3  	mods	A7,A3
+ 0718 00003F20     6FFB  	modu	SP,B11
+ 0719 00003F30     E193  	addxy	B12,B3
+ 0720 00003F40     E2A3  	subxy	A5,A3
+ 0721 00003F50     E4E4  	cmpxy	A7,A4
+ 0722 00003F60     E72D  	cpw	A9,A13
+ 0723 00003F70     E927  	cvxyl	A9,A7
+ 0724 00003F80     EC86  	movx	A4,A6
+ 0725 00003F90     EFCF  	movy	A14,SP
+ 0726 00003FA0     F6FE  	drav	B7,B14
+ 0727 00003FB0     4A4E  	btst	A2,A14
+ 0728 00003FC0     4DBA  	move	B13,B10
+ 0729 00003FD0     0390  	abs	B0
+ 0730 00003FE0     03A6  	neg	A6
+ 0731 00003FF0     03C3  	negb	A3
+ 0732 00004000     03E3  	not	A3
+ 0733 00004010     013D  	exgpc	B13
+ 0734 00004020     0156  	getpc	B6
+ 0735 00004030     0168  	jump	A8
+ 0736 00004040     018A  	getst	A10
+ 0737 00004050     01BA  	putst	B10
+ 0738 00004060     0934  	call	B4
+ 0739 00004070     0300  	nop
+ 0740 00004080     57BD  	clr	B13
+ 0741 00004090     1038  	inc	B8
+ 0742 000040A0     1432  	dec	B2
+ 0743 000040B0     0300  	nop
+ 0744 000040C0     0320  	clrc
+ 0745 000040D0     0DE0  	setc
+ 0746 000040E0     0360  	dint
+ 0747 000040F0     0D60  	eint
+ 0748 00004100     01C0  	popst
+ 0749 00004110     01E0  	pushst
+ 0750 00004120     0940  	reti
+ 0751 00004130     0100  	emu
+ 0752 00004140     123A  	addk	17,B10
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   18
+
+ 0753 00004150     163D  	subk	17,B13
+ 0754 00004160     1B0D  	movk	24,A13
+ 0755 00004170     1E4B  	btst	13,A11
+ 0756 00004180     21FE  	sla	15,B14
+ 0757 00004190     260E  	sll	16,A14
+ 0758 000041A0     2B7E  	sra	5,B14
+ 0759 000041B0     2FD8  	srl	2,B8
+ 0760 000041C0     31BD  	rl	13,B13
+ 0761 000041D0     0B0B  	addi	11958,A11
+      000041E0     2EB6  
+ 0762 000041F0     0B39  	addi	0254345EFh,B9,l
+      00004200 254345EF  
+ 0763 00004220     0B43  	cmpi	6856,A3
+      00004230     E537  
+ 0764 00004240     0B68  	cmpi	0DE18ACE3h,A8,l
+      00004250 21E7531C  
+ 0765 00004270     09D9  	movi	-25675,B9
+      00004280     9BB5  
+ 0766 00004290     09F7  	movi	0C414E3Ah,B7,l
+      000042A0 0C414E3A  
+ 0767 000042C0     0BE0  	subi	3758,A0
+      000042D0     F151  
+ 0768 000042E0     0D08  	subi	0F5886743h,A8,l
+      000042F0 0A7798BC  
+ 0769 00004310     0B91  	andi	0668F4354h,B1
+      00004320 9970BCAB  
+ 0770 00004340     0B96  	andni	0EA77F3B3h,B6
+      00004350 EA77F3B3  
+ 0771 00004370     0BA5  	ori	0225D9D94h,A5
+      00004380 225D9D94  
+ 0772 000043A0     0BD9  	xori	0CAB079Fh,B9
+      000043B0 0CAB079F  
+ 0773 000043D0     0502  	sext	A2,0
+ 0774 000043E0     0729  	zext	A9,1
+ 0775 000043F0     D509  	exgf	A9,0
+ 0776 00004400     0558  	setf	24,0,0
+ 0777 00004410     097C  	rets	28
+ 0778 00004420     0907  	trap	7
+ 0779 00004430     0981  	mmtm	A1,A3,A6,A7
+      00004440     1300  
+ 0780 00004450     09A7  	mmfm	A7,A3,A6,A7
+      00004460     00C8  
+ 0781 00004470     83BA  	move	B13,*B10,1
+ 0782 00004480     87BA  	move	*B13,B10,1
+ 0783 00004490     8BBA  	move	*B13,*B10,1
+ 0784 000044A0     93BA  	move	B13,*B10+,1
+ 0785 000044B0     97BA  	move	*B13+,B10,1
+ 0786 000044C0     9BBA  	move	*B13+,*B10+,1
+ 0787 000044D0     A3BA  	move	B13,-*B10,1
+ 0788 000044E0     A7BA  	move	-*B13,B10,1
+ 0789 000044F0     ABBA  	move	-*B13,-*B10,1
+ 0790 00004500     B3BA  	move	B13,*B10(6153),1
+      00004510     1809  
+ 0791 00004520     B7BA  	move	*B13(6153),B10,1
+      00004530     1809  
+ 0792 00004540     BBBA  	move	*B13(6153),*B10(-3467),1
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   19
+
+      00004550     1809  
+      00004560     F275  
+ 0793 00004570     D3BA  	move	*B13(6153),*B10+,1
+      00004580     1809  
+ 0794 00004590     079D  	move	B13,@0735797DFh,1
+      000045A0 735797DF  
+ 0795 000045C0     07BA  	move	@013977E8Dh,B10,1
+      000045D0 13977E8D  
+ 0796 000045F0     07C0  	move	@0F5DC8DBBh,@01C7EEB58h,1
+      00004600 F5DC8DBB  
+      00004620 1C7EEB58  
+ 0797 00004640     D61A  	move	@0D7AE8D1Ch,*B10+,1
+      00004650 D7AE8D1C  
+ 0798 00004670     4EA5  	move	A5,B5
+ 0799 00004680     8DBA  	movb	B13,*B10
+ 0800 00004690     8FBA  	movb	*B13,B10
+ 0801 000046A0     9DBA  	movb	*B13,*B10
+ 0802 000046B0     ADBA  	movb	B13,*B10(6153)
+      000046C0     1809  
+ 0803 000046D0     AFBA  	movb	*B13(6153),B10
+      000046E0     1809  
+ 0804 000046F0     BDBA  	movb	*B13(6153),*B10(-3467)
+      00004700     1809  
+      00004710     F275  
+ 0805 00004720     05FD  	movb	B13,@039D6FE13h
+      00004730 39D6FE13  
+ 0806 00004750     07FA  	movb	@0D2C97C80h,B10
+      00004760 D2C97C80  
+ 0807 00004780     0340  	movb	@07046B407h,@076CE2275h
+      00004790 7046B407  
+      000047B0 76CE2275  
+ 0808 000047D0     F9BA  	pixt	B13,*B10
+ 0809 000047E0     F1BA  	pixt	B13,*B10.xy
+ 0810 000047F0     FBBA  	pixt	*B13,B10
+ 0811 00004800     F3BA  	pixt	*B13.xy,B10
+ 0812 00004810     FDBA  	pixt	*B13,*B10
+ 0813 00004820     F5BA  	pixt	*B13.xy,*B10.xy
+ 0814 00004830     0F00  	pixblt	L,L
+ 0815 00004840     0F20  	pixblt	L,XY
+ 0816 00004850     0F40  	pixblt	XY,L
+ 0817 00004860     0F60  	pixblt	XY,XY
+ 0818 00004870     0F80  	pixblt	B,L
+ 0819 00004880     0FA0  	pixblt	B,XY
+ 0820 00004890     0FC0  	fill	L
+ 0821 000048A0     0FE0  	fill	XY
+ 0822 000048B0     DF1A  	line	0
+ 0823 000048C0     C780  	jagt	L6
+      000048D0 000049C0' 
+ 0824 000048F0     CC80  	jav	L6
+      00004900 000049C0' 
+ 0825 00004920     0DA9  	dsjeq	A9,L6
+      00004930     0008  
+ 0826 00004940     0DC0  	dsjne	A0,L6
+      00004950     0006  
+ 0827 00004960     38AA  	dsjs	A10,L6
+ 0828 00004970     0D3F  	callr	L6
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   20
+
+      00004980     0003  
+ 0829 00004990     0D5F  	calla	L6
+      000049A0 000049C0' 
+ 0830 000049C0           L6:
+ 0831 000049C0     3C20  	dsjs	A0,L6
+ 0832 000049D0     3C4C  	dsj	A12,L6
+ 0833 000049E0     0D8D  	dsj	A13,K5
+      000049F0     FF3E  
+ 0834 00004A00     C0FB  	jruc	L6
+ 0835 00004A10     C080  	jauc	K5
+      00004A20 00003DE0' 
+ 0836 00004A40           K6:
+ 0837 00004A40     4023  	add	A1,A3
+ 0838 00004A50     43AE  	addc	A13,A14
+ 0839 00004A60     4581  	sub	A12,A1
+ 0840 00004A70     47C6  	subb	A14,A6
+ 0841 00004A80     49E1  	cmp	SP,A1
+ 0842 00004A90     50E1  	and	A7,A1
+ 0843 00004AA0     5361  	andn	A11,A1
+ 0844 00004AB0     54A3  	or	A5,A3
+ 0845 00004AC0     5685  	xor	A4,A5
+ 0846 00004AD0     58BB  	divs	B5,B11
+ 0847 00004AE0     5AEC  	divu	A7,A12
+ 0848 00004AF0     5C13  	mpys	B0,B3
+ 0849 00004B00     5F1F  	mpyu	B8,SP
+ 0850 00004B10     612A  	sla	A9,A10
+ 0851 00004B20     62F9  	sll	B7,B9
+ 0852 00004B30     65E9  	sra	SP,A9
+ 0853 00004B40     67B1  	srl	B13,B1
+ 0854 00004B50     6863  	rl	A3,A3
+ 0855 00004B60     6A11  	lmo	B0,B1
+ 0856 00004B70     6D82  	mods	A12,A2
+ 0857 00004B80     6F90  	modu	B12,B0
+ 0858 00004B90     E1E1  	addxy	SP,A1
+ 0859 00004BA0     E3A5  	subxy	A13,A5
+ 0860 00004BB0     E588  	cmpxy	A12,A8
+ 0861 00004BC0     E72A  	cpw	A9,A10
+ 0862 00004BD0     E8E8  	cvxyl	A7,A8
+ 0863 00004BE0     ECF5  	movx	B7,B5
+ 0864 00004BF0     EFCA  	movy	A14,A10
+ 0865 00004C00     F751  	drav	B10,B1
+ 0866 00004C10     4A6E  	btst	A3,A14
+ 0867 00004C20     4C53  	move	B2,B3
+ 0868 00004C30     039E  	abs	B14
+ 0869 00004C40     03B3  	neg	B3
+ 0870 00004C50     03D9  	negb	B9
+ 0871 00004C60     03F4  	not	B4
+ 0872 00004C70     0138  	exgpc	B8
+ 0873 00004C80     0152  	getpc	B2
+ 0874 00004C90     016F  	jump	SP
+ 0875 00004CA0     018B  	getst	A11
+ 0876 00004CB0     01A0  	putst	A0
+ 0877 00004CC0     093E  	call	B14
+ 0878 00004CD0     0300  	nop
+ 0879 00004CE0     576B  	clr	A11
+ 0880 00004CF0     1036  	inc	B6
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   21
+
+ 0881 00004D00     143B  	dec	B11
+ 0882 00004D10     0300  	nop
+ 0883 00004D20     0320  	clrc
+ 0884 00004D30     0DE0  	setc
+ 0885 00004D40     0360  	dint
+ 0886 00004D50     0D60  	eint
+ 0887 00004D60     01C0  	popst
+ 0888 00004D70     01E0  	pushst
+ 0889 00004D80     0940  	reti
+ 0890 00004D90     0100  	emu
+ 0891 00004DA0     10A9  	addk	5,A9
+ 0892 00004DB0     1480  	subk	4,A0
+ 0893 00004DC0     1929  	movk	9,A9
+ 0894 00004DD0     1D65  	btst	20,A5
+ 0895 00004DE0     20C0  	sla	6,A0
+ 0896 00004DF0     2697  	sll	20,B7
+ 0897 00004E00     298F  	sra	20,SP
+ 0898 00004E10     2CB5  	srl	27,B5
+ 0899 00004E20     32F4  	rl	23,B4
+ 0900 00004E30     0B00  	addi	-31924,A0
+      00004E40     834C  
+ 0901 00004E50     0B28  	addi	0AD81DDAAh,A8,l
+      00004E60 AD81DDAA  
+ 0902 00004E80     0B46  	cmpi	19703,A6
+      00004E90     B308  
+ 0903 00004EA0     0B61  	cmpi	0A9C40EFh,A1,l
+      00004EB0 F563BF10  
+ 0904 00004ED0     09DB  	movi	-13735,B11
+      00004EE0     CA59  
+ 0905 00004EF0     09FB  	movi	0686691Dh,B11,l
+      00004F00 0686691D  
+ 0906 00004F20     0BE0  	subi	26084,A0
+      00004F30     9A1B  
+ 0907 00004F40     0D09  	subi	0B75B9289h,A9,l
+      00004F50 48A46D76  
+ 0908 00004F70     0B89  	andi	036EE5670h,A9
+      00004F80 C911A98F  
+ 0909 00004FA0     0B9C  	andni	0DDA1DD0Fh,B12
+      00004FB0 DDA1DD0F  
+ 0910 00004FD0     0BBB  	ori	04C8DD701h,B11
+      00004FE0 4C8DD701  
+ 0911 00005000     0BD1  	xori	0F16B1FA4h,B1
+      00005010 F16B1FA4  
+ 0912 00005030     0715  	sext	B5,1
+ 0913 00005040     0734  	zext	B4,1
+ 0914 00005050     D702  	exgf	A2,1
+ 0915 00005060     0569  	setf	9,1,0
+ 0916 00005070     0972  	rets	18
+ 0917 00005080     091A  	trap	26
+ 0918 00005090     098C  	mmtm	A12,A1,A8,A10,A12,A13
+      000050A0     40AC  
+ 0919 000050B0     09A3  	mmfm	A3,A1,A8,A10,A12,A13
+      000050C0     3502  
+ 0920 000050D0     82E4  	move	A7,*A4,1
+ 0921 000050E0     86E4  	move	*A7,A4,1
+ 0922 000050F0     8AE4  	move	*A7,*A4,1
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   22
+
+ 0923 00005100     92E4  	move	A7,*A4+,1
+ 0924 00005110     96E4  	move	*A7+,A4,1
+ 0925 00005120     9AE4  	move	*A7+,*A4+,1
+ 0926 00005130     A2E4  	move	A7,-*A4,1
+ 0927 00005140     A6E4  	move	-*A7,A4,1
+ 0928 00005150     AAE4  	move	-*A7,-*A4,1
+ 0929 00005160     B2E4  	move	A7,*A4(6008),1
+      00005170     1778  
+ 0930 00005180     B6E4  	move	*A7(6008),A4,1
+      00005190     1778  
+ 0931 000051A0     BAE4  	move	*A7(6008),*A4(13937),1
+      000051B0     1778  
+      000051C0     3671  
+ 0932 000051D0     D2E4  	move	*A7(6008),*A4+,1
+      000051E0     1778  
+ 0933 000051F0     0787  	move	A7,@04904419Dh,1
+      00005200 4904419D  
+ 0934 00005220     07A4  	move	@075F03D51h,A4,1
+      00005230 75F03D51  
+ 0935 00005250     07C0  	move	@0832EBD69h,@0D3B73C6Fh,1
+      00005260 832EBD69  
+      00005280 D3B73C6F  
+ 0936 000052A0     D604  	move	@0E4791A20h,*A4+,1
+      000052B0 E4791A20  
+ 0937 000052D0     4F38  	move	B9,A8
+ 0938 000052E0     8CE4  	movb	A7,*A4
+ 0939 000052F0     8EE4  	movb	*A7,A4
+ 0940 00005300     9CE4  	movb	*A7,*A4
+ 0941 00005310     ACE4  	movb	A7,*A4(6008)
+      00005320     1778  
+ 0942 00005330     AEE4  	movb	*A7(6008),A4
+      00005340     1778  
+ 0943 00005350     BCE4  	movb	*A7(6008),*A4(13937)
+      00005360     1778  
+      00005370     3671  
+ 0944 00005380     05E7  	movb	A7,@0C52D667Bh
+      00005390 C52D667B  
+ 0945 000053B0     07E4  	movb	@0E02EDF94h,A4
+      000053C0 E02EDF94  
+ 0946 000053E0     0340  	movb	@0EA4F065Eh,@018CD84CCh
+      000053F0 EA4F065E  
+      00005410 18CD84CC  
+ 0947 00005430     F8E4  	pixt	A7,*A4
+ 0948 00005440     F0E4  	pixt	A7,*A4.xy
+ 0949 00005450     FAE4  	pixt	*A7,A4
+ 0950 00005460     F2E4  	pixt	*A7.xy,A4
+ 0951 00005470     FCE4  	pixt	*A7,*A4
+ 0952 00005480     F4E4  	pixt	*A7.xy,*A4.xy
+ 0953 00005490     0F00  	pixblt	L,L
+ 0954 000054A0     0F20  	pixblt	L,XY
+ 0955 000054B0     0F40  	pixblt	XY,L
+ 0956 000054C0     0F60  	pixblt	XY,XY
+ 0957 000054D0     0F80  	pixblt	B,L
+ 0958 000054E0     0FA0  	pixblt	B,XY
+ 0959 000054F0     0FC0  	fill	L
+ 0960 00005500     0FE0  	fill	XY
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   23
+
+ 0961 00005510     DF1A  	line	0
+ 0962 00005520     CB80  	jane	L7
+      00005530 00005620' 
+ 0963 00005550     C780  	jagt	L7
+      00005560 00005620' 
+ 0964 00005580     0DBD  	dsjeq	B13,L7
+      00005590     0008  
+ 0965 000055A0     0DC3  	dsjne	A3,L7
+      000055B0     0006  
+ 0966 000055C0     38A0  	dsjs	A0,L7
+ 0967 000055D0     0D3F  	callr	L7
+      000055E0     0003  
+ 0968 000055F0     0D5F  	calla	L7
+      00005600 00005620' 
+ 0969 00005620           L7:
+ 0970 00005620     3C34  	dsjs	B4,L7
+ 0971 00005630     3C47  	dsj	A7,L7
+ 0972 00005640     0D80  	dsj	A0,K6
+      00005650     FF3E  
+ 0973 00005660     C8FB  	jrb	L7
+ 0974 00005670     C080  	jauc	K6
+      00005680 00004A40' 
+ 0975 000056A0           K7:
+ 0976 000056A0     40A0  	add	A5,A0
+ 0977 000056B0     431C  	addc	B8,B12
+ 0978 000056C0     4438  	sub	B1,B8
+ 0979 000056D0     4739  	subb	B9,B9
+ 0980 000056E0     497C  	cmp	B11,B12
+ 0981 000056F0     506D  	and	A3,A13
+ 0982 00005700     529C  	andn	B4,B12
+ 0983 00005710     54FB  	or	B7,B11
+ 0984 00005720     57D2  	xor	B14,B2
+ 0985 00005730     58C9  	divs	A6,A9
+ 0986 00005740     5BB3  	divu	B13,B3
+ 0987 00005750     5DEF  	mpys	SP,SP
+ 0988 00005760     5E46  	mpyu	A2,A6
+ 0989 00005770     606A  	sla	A3,A10
+ 0990 00005780     62CE  	sll	A6,A14
+ 0991 00005790     6483  	sra	A4,A3
+ 0992 000057A0     66F4  	srl	B7,B4
+ 0993 000057B0     6970  	rl	B11,B0
+ 0994 000057C0     6A13  	lmo	B0,B3
+ 0995 000057D0     6CCE  	mods	A6,A14
+ 0996 000057E0     6E32  	modu	B1,B2
+ 0997 000057F0     E1A0  	addxy	A13,A0
+ 0998 00005800     E38C  	subxy	A12,A12
+ 0999 00005810     E480  	cmpxy	A4,A0
+ 1000 00005820     E735  	cpw	B9,B5
+ 1001 00005830     E999  	cvxyl	B12,B9
+ 1002 00005840     EC05  	movx	A0,A5
+ 1003 00005850     EFC6  	movy	A14,A6
+ 1004 00005860     F7AE  	drav	A13,A14
+ 1005 00005870     4A50  	btst	B2,B0
+ 1006 00005880     4FE6  	move	SP,B6
+ 1007 00005890     038C  	abs	A12
+ 1008 000058A0     03B7  	neg	B7
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   24
+
+ 1009 000058B0     03C9  	negb	A9
+ 1010 000058C0     03E9  	not	A9
+ 1011 000058D0     013C  	exgpc	B12
+ 1012 000058E0     0143  	getpc	A3
+ 1013 000058F0     0179  	jump	B9
+ 1014 00005900     018F  	getst	SP
+ 1015 00005910     01B6  	putst	B6
+ 1016 00005920     0936  	call	B6
+ 1017 00005930     0300  	nop
+ 1018 00005940     5684  	clr	A4
+ 1019 00005950     1020  	inc	A0
+ 1020 00005960     143C  	dec	B12
+ 1021 00005970     0300  	nop
+ 1022 00005980     0320  	clrc
+ 1023 00005990     0DE0  	setc
+ 1024 000059A0     0360  	dint
+ 1025 000059B0     0D60  	eint
+ 1026 000059C0     01C0  	popst
+ 1027 000059D0     01E0  	pushst
+ 1028 000059E0     0940  	reti
+ 1029 000059F0     0100  	emu
+ 1030 00005A00     10E1  	addk	7,A1
+ 1031 00005A10     1712  	subk	24,B2
+ 1032 00005A20     1A8F  	movk	20,SP
+ 1033 00005A30     1C4E  	btst	29,A14
+ 1034 00005A40     237A  	sla	27,B10
+ 1035 00005A50     27BB  	sll	29,B11
+ 1036 00005A60     2905  	sra	24,A5
+ 1037 00005A70     2FA6  	srl	3,A6
+ 1038 00005A80     30C4  	rl	6,A4
+ 1039 00005A90     0B08  	addi	24202,A8
+      00005AA0     5E8A  
+ 1040 00005AB0     0B25  	addi	0EAFDF35Ch,A5,l
+      00005AC0 EAFDF35C  
+ 1041 00005AE0     0B58  	cmpi	-3522,B8
+      00005AF0     0DC1  
+ 1042 00005B00     0B67  	cmpi	057EDAE97h,A7,l
+      00005B10 A8125168  
+ 1043 00005B30     09D5  	movi	19614,B5
+      00005B40     4C9E  
+ 1044 00005B50     09F5  	movi	05458A1F8h,B5,l
+      00005B60 5458A1F8  
+ 1045 00005B80     0BE0  	subi	-29796,A0
+      00005B90     7463  
+ 1046 00005BA0     0D07  	subi	06AA54BDEh,A7,l
+      00005BB0 955AB421  
+ 1047 00005BD0     0B8E  	andi	0523C4E4Ch,A14
+      00005BE0 ADC3B1B3  
+ 1048 00005C00     0B9E  	andni	021727FDEh,B14
+      00005C10 21727FDE  
+ 1049 00005C30     0BB9  	ori	08F5420F2h,B9
+      00005C40 8F5420F2  
+ 1050 00005C60     0BC5  	xori	0664393ADh,A5
+      00005C70 664393AD  
+ 1051 00005C90     0702  	sext	A2,1
+ 1052 00005CA0     072C  	zext	A12,1
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   25
+
+ 1053 00005CB0     D713  	exgf	B3,1
+ 1054 00005CC0     0747  	setf	7,0,1
+ 1055 00005CD0     096D  	rets	13
+ 1056 00005CE0     090A  	trap	10
+ 1057 00005CF0     0983  	mmtm	A3,A1,A3,A5,A8,A14
+      00005D00     5482  
+ 1058 00005D10     09A4  	mmfm	A4,A1,A3,A5,A8,A14
+      00005D20     412A  
+ 1059 00005D30     82F9  	move	B7,*B9,1
+ 1060 00005D40     86F9  	move	*B7,B9,1
+ 1061 00005D50     8AF9  	move	*B7,*B9,1
+ 1062 00005D60     92F9  	move	B7,*B9+,1
+ 1063 00005D70     96F9  	move	*B7+,B9,1
+ 1064 00005D80     9AF9  	move	*B7+,*B9+,1
+ 1065 00005D90     A2F9  	move	B7,-*B9,1
+ 1066 00005DA0     A6F9  	move	-*B7,B9,1
+ 1067 00005DB0     AAF9  	move	-*B7,-*B9,1
+ 1068 00005DC0     B2F9  	move	B7,*B9(10154),1
+      00005DD0     27AA  
+ 1069 00005DE0     B6F9  	move	*B7(10154),B9,1
+      00005DF0     27AA  
+ 1070 00005E00     BAF9  	move	*B7(10154),*B9(20016),1
+      00005E10     27AA  
+      00005E20     4E30  
+ 1071 00005E30     D2F9  	move	*B7(10154),*B9+,1
+      00005E40     27AA  
+ 1072 00005E50     0797  	move	B7,@0D6DF7EF8h,1
+      00005E60 D6DF7EF8  
+ 1073 00005E80     07B9  	move	@084B953Fh,B9,1
+      00005E90 084B953F  
+ 1074 00005EB0     07C0  	move	@0EC68C945h,@02AE1E51h,1
+      00005EC0 EC68C945  
+      00005EE0 02AE1E51  
+ 1075 00005F00     D619  	move	@0357E42C3h,*B9+,1
+      00005F10 357E42C3  
+ 1076 00005F30     4FCB  	move	A14,B11
+ 1077 00005F40     8CF9  	movb	B7,*B9
+ 1078 00005F50     8EF9  	movb	*B7,B9
+ 1079 00005F60     9CF9  	movb	*B7,*B9
+ 1080 00005F70     ACF9  	movb	B7,*B9(10154)
+      00005F80     27AA  
+ 1081 00005F90     AEF9  	movb	*B7(10154),B9
+      00005FA0     27AA  
+ 1082 00005FB0     BCF9  	movb	*B7(10154),*B9(20016)
+      00005FC0     27AA  
+      00005FD0     4E30  
+ 1083 00005FE0     05F7  	movb	B7,@07AC56AFCh
+      00005FF0 7AC56AFC  
+ 1084 00006010     07F9  	movb	@01523B22Ch,B9
+      00006020 1523B22C  
+ 1085 00006040     0340  	movb	@0199BB734h,@07D37EF64h
+      00006050 199BB734  
+      00006070 7D37EF64  
+ 1086 00006090     F8F9  	pixt	B7,*B9
+ 1087 000060A0     F0F9  	pixt	B7,*B9.xy
+ 1088 000060B0     FAF9  	pixt	*B7,B9
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   26
+
+ 1089 000060C0     F2F9  	pixt	*B7.xy,B9
+ 1090 000060D0     FCF9  	pixt	*B7,*B9
+ 1091 000060E0     F4F9  	pixt	*B7.xy,*B9.xy
+ 1092 000060F0     0F00  	pixblt	L,L
+ 1093 00006100     0F20  	pixblt	L,XY
+ 1094 00006110     0F40  	pixblt	XY,L
+ 1095 00006120     0F60  	pixblt	XY,XY
+ 1096 00006130     0F80  	pixblt	B,L
+ 1097 00006140     0FA0  	pixblt	B,XY
+ 1098 00006150     0FC0  	fill	L
+ 1099 00006160     0FE0  	fill	XY
+ 1100 00006170     DF1A  	line	0
+ 1101 00006180     CD80  	janv	L8
+      00006190 00006280' 
+ 1102 000061B0     C180  	jap	L8
+      000061C0 00006280' 
+ 1103 000061E0     0DAF  	dsjeq	SP,L8
+      000061F0     0008  
+ 1104 00006200     0DC2  	dsjne	A2,L8
+      00006210     0006  
+ 1105 00006220     38AF  	dsjs	SP,L8
+ 1106 00006230     0D3F  	callr	L8
+      00006240     0003  
+ 1107 00006250     0D5F  	calla	L8
+      00006260 00006280' 
+ 1108 00006280           L8:
+ 1109 00006280     3C3C  	dsjs	B12,L8
+ 1110 00006290     3C41  	dsj	A1,L8
+ 1111 000062A0     0D97  	dsj	B7,K7
+      000062B0     FF3E  
+ 1112 000062C0     C8FB  	jrc	L8
+ 1113 000062D0     CC80  	jav	K7
+      000062E0 000056A0' 
+ 1114 00006300           K8:
+ 1115 00006300     4024  	add	A1,A4
+ 1116 00006310     43C5  	addc	A14,A5
+ 1117 00006320     4569  	sub	A11,A9
+ 1118 00006330     4718  	subb	B8,B8
+ 1119 00006340     495C  	cmp	B10,B12
+ 1120 00006350     5032  	and	B1,B2
+ 1121 00006360     525D  	andn	B2,B13
+ 1122 00006370     55D6  	or	B14,B6
+ 1123 00006380     5686  	xor	A4,A6
+ 1124 00006390     58BB  	divs	B5,B11
+ 1125 000063A0     5A61  	divu	A3,A1
+ 1126 000063B0     5CDD  	mpys	B6,B13
+ 1127 000063C0     5E47  	mpyu	A2,A7
+ 1128 000063D0     60EA  	sla	A7,A10
+ 1129 000063E0     622E  	sll	A1,A14
+ 1130 000063F0     649D  	sra	B4,B13
+ 1131 00006400     6627  	srl	A1,A7
+ 1132 00006410     68CA  	rl	A6,A10
+ 1133 00006420     6B97  	lmo	B12,B7
+ 1134 00006430     6C79  	mods	B3,B9
+ 1135 00006440     6FF8  	modu	SP,B8
+ 1136 00006450     E033  	addxy	B1,B3
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   27
+
+ 1137 00006460     E2AB  	subxy	A5,A11
+ 1138 00006470     E515  	cmpxy	B8,B5
+ 1139 00006480     E6EB  	cpw	A7,A11
+ 1140 00006490     E87B  	cvxyl	B3,B11
+ 1141 000064A0     EC02  	movx	A0,A2
+ 1142 000064B0     EF2F  	movy	A9,SP
+ 1143 000064C0     F746  	drav	A10,A6
+ 1144 000064D0     4A90  	btst	B4,B0
+ 1145 000064E0     4EDF  	move	B6,SP
+ 1146 000064F0     038B  	abs	A11
+ 1147 00006500     03A8  	neg	A8
+ 1148 00006510     03DD  	negb	B13
+ 1149 00006520     03F9  	not	B9
+ 1150 00006530     012B  	exgpc	A11
+ 1151 00006540     0142  	getpc	A2
+ 1152 00006550     0179  	jump	B9
+ 1153 00006560     0180  	getst	A0
+ 1154 00006570     01BB  	putst	B11
+ 1155 00006580     092F  	call	SP
+ 1156 00006590     0300  	nop
+ 1157 000065A0     56C6  	clr	A6
+ 1158 000065B0     1023  	inc	A3
+ 1159 000065C0     1436  	dec	B6
+ 1160 000065D0     0300  	nop
+ 1161 000065E0     0320  	clrc
+ 1162 000065F0     0DE0  	setc
+ 1163 00006600     0360  	dint
+ 1164 00006610     0D60  	eint
+ 1165 00006620     01C0  	popst
+ 1166 00006630     01E0  	pushst
+ 1167 00006640     0940  	reti
+ 1168 00006650     0100  	emu
+ 1169 00006660     1271  	addk	19,B1
+ 1170 00006670     15A0  	subk	13,A0
+ 1171 00006680     19A4  	movk	13,A4
+ 1172 00006690     1D23  	btst	22,A3
+ 1173 000066A0     21E6  	sla	15,A6
+ 1174 000066B0     2746  	sll	26,A6
+ 1175 000066C0     29FA  	sra	17,B10
+ 1176 000066D0     2E79  	srl	13,B9
+ 1177 000066E0     31F4  	rl	15,B4
+ 1178 000066F0     0B04  	addi	26586,A4
+      00006700     67DA  
+ 1179 00006710     0B20  	addi	0AAFB4D59h,A0,l
+      00006720 AAFB4D59  
+ 1180 00006740     0B44  	cmpi	15538,A4
+      00006750     C34D  
+ 1181 00006760     0B71  	cmpi	0CFCD6101h,B1,l
+      00006770 30329EFE  
+ 1182 00006790     09CB  	movi	7445,A11
+      000067A0     1D15  
+ 1183 000067B0     09EC  	movi	02E472BD2h,A12,l
+      000067C0 2E472BD2  
+ 1184 000067E0     0BE0  	subi	30474,A0
+      000067F0     88F5  
+ 1185 00006800     0D16  	subi	0E02BA971h,B6,l
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   28
+
+      00006810 1FD4568E  
+ 1186 00006830     0B8F  	andi	0720D6BD9h,SP
+      00006840 8DF29426  
+ 1187 00006860     0B81  	andni	0C83F88C5h,A1
+      00006870 C83F88C5  
+ 1188 00006890     0BA1  	ori	03938C833h,A1
+      000068A0 3938C833  
+ 1189 000068C0     0BCF  	xori	01773CEE4h,SP
+      000068D0 1773CEE4  
+ 1190 000068F0     0515  	sext	B5,0
+ 1191 00006900     073B  	zext	B11,1
+ 1192 00006910     D716  	exgf	B6,1
+ 1193 00006920     076B  	setf	11,1,1
+ 1194 00006930     097B  	rets	27
+ 1195 00006940     0904  	trap	4
+ 1196 00006950     099D  	mmtm	B13,B0,B1,B10,B12,B13
+      00006960     C02C  
+ 1197 00006970     09B1  	mmfm	B1,B0,B1,B10,B12,B13
+      00006980     3403  
+ 1198 00006990     82FB  	move	B7,*B11,1
+ 1199 000069A0     86FB  	move	*B7,B11,1
+ 1200 000069B0     8AFB  	move	*B7,*B11,1
+ 1201 000069C0     92FB  	move	B7,*B11+,1
+ 1202 000069D0     96FB  	move	*B7+,B11,1
+ 1203 000069E0     9AFB  	move	*B7+,*B11+,1
+ 1204 000069F0     A2FB  	move	B7,-*B11,1
+ 1205 00006A00     A6FB  	move	-*B7,B11,1
+ 1206 00006A10     AAFB  	move	-*B7,-*B11,1
+ 1207 00006A20     B2FB  	move	B7,*B11(1411),1
+      00006A30     0583  
+ 1208 00006A40     B6FB  	move	*B7(1411),B11,1
+      00006A50     0583  
+ 1209 00006A60     BAFB  	move	*B7(1411),*B11(-14046),1
+      00006A70     0583  
+      00006A80     C922  
+ 1210 00006A90     D2FB  	move	*B7(1411),*B11+,1
+      00006AA0     0583  
+ 1211 00006AB0     0797  	move	B7,@0582A779h,1
+      00006AC0 0582A779  
+ 1212 00006AE0     07BB  	move	@084C86B2h,B11,1
+      00006AF0 084C86B2  
+ 1213 00006B10     07C0  	move	@0D92B0FCAh,@0A28BCC55h,1
+      00006B20 D92B0FCA  
+      00006B40 A28BCC55  
+ 1214 00006B60     D61B  	move	@0E04FA289h,*B11+,1
+      00006B70 E04FA289  
+ 1215 00006B90     4FC9  	move	A14,B9
+ 1216 00006BA0     8CFB  	movb	B7,*B11
+ 1217 00006BB0     8EFB  	movb	*B7,B11
+ 1218 00006BC0     9CFB  	movb	*B7,*B11
+ 1219 00006BD0     ACFB  	movb	B7,*B11(1411)
+      00006BE0     0583  
+ 1220 00006BF0     AEFB  	movb	*B7(1411),B11
+      00006C00     0583  
+ 1221 00006C10     BCFB  	movb	*B7(1411),*B11(-14046)
+      00006C20     0583  
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   29
+
+      00006C30     C922  
+ 1222 00006C40     05F7  	movb	B7,@0ED08411Bh
+      00006C50 ED08411B  
+ 1223 00006C70     07FB  	movb	@075562042h,B11
+      00006C80 75562042  
+ 1224 00006CA0     0340  	movb	@06847BFEh,@03E002A26h
+      00006CB0 06847BFE  
+      00006CD0 3E002A26  
+ 1225 00006CF0     F8FB  	pixt	B7,*B11
+ 1226 00006D00     F0FB  	pixt	B7,*B11.xy
+ 1227 00006D10     FAFB  	pixt	*B7,B11
+ 1228 00006D20     F2FB  	pixt	*B7.xy,B11
+ 1229 00006D30     FCFB  	pixt	*B7,*B11
+ 1230 00006D40     F4FB  	pixt	*B7.xy,*B11.xy
+ 1231 00006D50     0F00  	pixblt	L,L
+ 1232 00006D60     0F20  	pixblt	L,XY
+ 1233 00006D70     0F40  	pixblt	XY,L
+ 1234 00006D80     0F60  	pixblt	XY,XY
+ 1235 00006D90     0F80  	pixblt	B,L
+ 1236 00006DA0     0FA0  	pixblt	B,XY
+ 1237 00006DB0     0FC0  	fill	L
+ 1238 00006DC0     0FE0  	fill	XY
+ 1239 00006DD0     DF9A  	line	1
+ 1240 00006DE0     C380  	jahi	L9
+      00006DF0 00006EE0' 
+ 1241 00006E10     C980  	janb	L9
+      00006E20 00006EE0' 
+ 1242 00006E40     0DBA  	dsjeq	B10,L9
+      00006E50     0008  
+ 1243 00006E60     0DCD  	dsjne	A13,L9
+      00006E70     0006  
+ 1244 00006E80     38B3  	dsjs	B3,L9
+ 1245 00006E90     0D3F  	callr	L9
+      00006EA0     0003  
+ 1246 00006EB0     0D5F  	calla	L9
+      00006EC0 00006EE0' 
+ 1247 00006EE0           L9:
+ 1248 00006EE0     3C3C  	dsjs	B12,L9
+ 1249 00006EF0     3C48  	dsj	A8,L9
+ 1250 00006F00     0D8C  	dsj	A12,K8
+      00006F10     FF3E  
+ 1251 00006F20     CBFB  	jrnz	L9
+ 1252 00006F30     CA80  	jaz	K8
+      00006F40 00006300' 
+ 1253 00006F60           K9:
+ 1254 00006F60     40C1  	add	A6,A1
+ 1255 00006F70     4210  	addc	B0,B0
+ 1256 00006F80     44D4  	sub	B6,B4
+ 1257 00006F90     460E  	subb	A0,A14
+ 1258 00006FA0     497D  	cmp	B11,B13
+ 1259 00006FB0     5019  	and	B0,B9
+ 1260 00006FC0     52F6  	andn	B7,B6
+ 1261 00006FD0     5595  	or	B12,B5
+ 1262 00006FE0     57F6  	xor	SP,B6
+ 1263 00006FF0     58A9  	divs	A5,A9
+ 1264 00007000     5ABC  	divu	B5,B12
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   30
+
+ 1265 00007010     5C0B  	mpys	A0,A11
+ 1266 00007020     5E4F  	mpyu	A2,SP
+ 1267 00007030     61D4  	sla	B14,B4
+ 1268 00007040     6239  	sll	B1,B9
+ 1269 00007050     64FC  	sra	B7,B12
+ 1270 00007060     66FB  	srl	B7,B11
+ 1271 00007070     6831  	rl	B1,B1
+ 1272 00007080     6BF2  	lmo	SP,B2
+ 1273 00007090     6C9F  	mods	B4,SP
+ 1274 000070A0     6E1D  	modu	B0,B13
+ 1275 000070B0     E14E  	addxy	A10,A14
+ 1276 000070C0     E35E  	subxy	B10,B14
+ 1277 000070D0     E4E0  	cmpxy	A7,A0
+ 1278 000070E0     E602  	cpw	A0,A2
+ 1279 000070F0     E84B  	cvxyl	A2,A11
+ 1280 00007100     EC35  	movx	B1,B5
+ 1281 00007110     EF1F  	movy	B8,SP
+ 1282 00007120     F7DD  	drav	B14,B13
+ 1283 00007130     4B18  	btst	B8,B8
+ 1284 00007140     4C10  	move	B0,B0
+ 1285 00007150     038B  	abs	A11
+ 1286 00007160     03A4  	neg	A4
+ 1287 00007170     03CD  	negb	A13
+ 1288 00007180     03E1  	not	A1
+ 1289 00007190     013A  	exgpc	B10
+ 1290 000071A0     0153  	getpc	B3
+ 1291 000071B0     016F  	jump	SP
+ 1292 000071C0     0184  	getst	A4
+ 1293 000071D0     01AF  	putst	SP
+ 1294 000071E0     093E  	call	B14
+ 1295 000071F0     0300  	nop
+ 1296 00007200     56C6  	clr	A6
+ 1297 00007210     1020  	inc	A0
+ 1298 00007220     1423  	dec	A3
+ 1299 00007230     0300  	nop
+ 1300 00007240     0320  	clrc
+ 1301 00007250     0DE0  	setc
+ 1302 00007260     0360  	dint
+ 1303 00007270     0D60  	eint
+ 1304 00007280     01C0  	popst
+ 1305 00007290     01E0  	pushst
+ 1306 000072A0     0940  	reti
+ 1307 000072B0     0100  	emu
+ 1308 000072C0     120B  	addk	16,A11
+ 1309 000072D0     14DA  	subk	6,B10
+ 1310 000072E0     1A01  	movk	16,A1
+ 1311 000072F0     1E19  	btst	15,B9
+ 1312 00007300     207D  	sla	3,B13
+ 1313 00007310     24DA  	sll	6,B10
+ 1314 00007320     2BD1  	sra	2,B1
+ 1315 00007330     2D69  	srl	21,A9
+ 1316 00007340     30FA  	rl	7,B10
+ 1317 00007350     0B0E  	addi	26486,A14
+      00007360     6776  
+ 1318 00007370     0B31  	addi	09DC01A3Bh,B1,l
+      00007380 9DC01A3B  
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   31
+
+ 1319 000073A0     0B5B  	cmpi	28044,B11
+      000073B0     9273  
+ 1320 000073C0     0B75  	cmpi	0E388F558h,B5,l
+      000073D0 1C770AA7  
+ 1321 000073F0     09D2  	movi	14968,B2
+      00007400     3A78  
+ 1322 00007410     09F4  	movi	0D8653B9Fh,B4,l
+      00007420 D8653B9F  
+ 1323 00007440     0BE0  	subi	-10744,A0
+      00007450     29F7  
+ 1324 00007460     0D0C  	subi	07C4808C0h,A12,l
+      00007470 83B7F73F  
+ 1325 00007490     0B8A  	andi	0573C52C0h,A10
+      000074A0 A8C3AD3F  
+ 1326 000074C0     0B94  	andni	0685A0F9Dh,B4
+      000074D0 685A0F9D  
+ 1327 000074F0     0BBA  	ori	068D0D10Bh,B10
+      00007500 68D0D10B  
+ 1328 00007520     0BD1  	xori	0728BE650h,B1
+      00007530 728BE650  
+ 1329 00007550     050C  	sext	A12,0
+ 1330 00007560     073B  	zext	B11,1
+ 1331 00007570     D71B  	exgf	B11,1
+ 1332 00007580     0546  	setf	6,0,0
+ 1333 00007590     0969  	rets	9
+ 1334 000075A0     090D  	trap	13
+ 1335 000075B0     098F  	mmtm	SP,A3,A5,A7,A8,A12
+      000075C0     1588  
+ 1336 000075D0     09A5  	mmfm	A5,A3,A5,A7,A8,A12
+      000075E0     11A8  
+ 1337 000075F0     81E7  	move	SP,*A7,0
+ 1338 00007600     85E7  	move	*SP,A7,0
+ 1339 00007610     89E7  	move	*SP,*A7,0
+ 1340 00007620     91E7  	move	SP,*A7+,0
+ 1341 00007630     95E7  	move	*SP+,A7,0
+ 1342 00007640     99E7  	move	*SP+,*A7+,0
+ 1343 00007650     A1E7  	move	SP,-*A7,0
+ 1344 00007660     A5E7  	move	-*SP,A7,0
+ 1345 00007670     A9E7  	move	-*SP,-*A7,0
+ 1346 00007680     B1E7  	move	SP,*A7(15995),0
+      00007690     3E7B  
+ 1347 000076A0     B5E7  	move	*SP(15995),A7,0
+      000076B0     3E7B  
+ 1348 000076C0     B9E7  	move	*SP(15995),*A7(2520),0
+      000076D0     3E7B  
+      000076E0     09D8  
+ 1349 000076F0     D1E7  	move	*SP(15995),*A7+,0
+      00007700     3E7B  
+ 1350 00007710     058F  	move	SP,@06E96F3EBh,0
+      00007720 6E96F3EB  
+ 1351 00007740     05A7  	move	@099981354h,A7,0
+      00007750 99981354  
+ 1352 00007770     05C0  	move	@0508A8AB6h,@06D8FFC80h,0
+      00007780 508A8AB6  
+      000077A0 6D8FFC80  
+ 1353 000077C0     D407  	move	@0A43B58ADh,*A7+,0
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   32
+
+      000077D0 A43B58AD  
+ 1354 000077F0     4E7D  	move	B3,A13
+ 1355 00007800     8DE7  	movb	SP,*A7
+ 1356 00007810     8FE7  	movb	*SP,A7
+ 1357 00007820     9DE7  	movb	*SP,*A7
+ 1358 00007830     ADE7  	movb	SP,*A7(15995)
+      00007840     3E7B  
+ 1359 00007850     AFE7  	movb	*SP(15995),A7
+      00007860     3E7B  
+ 1360 00007870     BDE7  	movb	*SP(15995),*A7(2520)
+      00007880     3E7B  
+      00007890     09D8  
+ 1361 000078A0     05EF  	movb	SP,@036109D84h
+      000078B0 36109D84  
+ 1362 000078D0     07E7  	movb	@05F002832h,A7
+      000078E0 5F002832  
+ 1363 00007900     0340  	movb	@0FA9C84BAh,@06CC3D7D9h
+      00007910 FA9C84BA  
+      00007930 6CC3D7D9  
+ 1364 00007950     F9E7  	pixt	SP,*A7
+ 1365 00007960     F1E7  	pixt	SP,*A7.xy
+ 1366 00007970     FBE7  	pixt	*SP,A7
+ 1367 00007980     F3E7  	pixt	*SP.xy,A7
+ 1368 00007990     FDE7  	pixt	*SP,*A7
+ 1369 000079A0     F5E7  	pixt	*SP.xy,*A7.xy
+ 1370 000079B0     0F00  	pixblt	L,L
+ 1371 000079C0     0F20  	pixblt	L,XY
+ 1372 000079D0     0F40  	pixblt	XY,L
+ 1373 000079E0     0F60  	pixblt	XY,XY
+ 1374 000079F0     0F80  	pixblt	B,L
+ 1375 00007A00     0FA0  	pixblt	B,XY
+ 1376 00007A10     0FC0  	fill	L
+ 1377 00007A20     0FE0  	fill	XY
+ 1378 00007A30     DF1A  	line	0
+ 1379 00007A40     C780  	jagt	L10
+      00007A50 00007B40' 
+ 1380 00007A70     CB80  	janz	L10
+      00007A80 00007B40' 
+ 1381 00007AA0     0DA6  	dsjeq	A6,L10
+      00007AB0     0008  
+ 1382 00007AC0     0DDD  	dsjne	B13,L10
+      00007AD0     0006  
+ 1383 00007AE0     38A8  	dsjs	A8,L10
+ 1384 00007AF0     0D3F  	callr	L10
+      00007B00     0003  
+ 1385 00007B10     0D5F  	calla	L10
+      00007B20 00007B40' 
+ 1386 00007B40           L10:
+ 1387 00007B40     3C28  	dsjs	A8,L10
+ 1388 00007B50     3C4F  	dsj	SP,L10
+ 1389 00007B60     0D9C  	dsj	B12,K9
+      00007B70     FF3E  
+ 1390 00007B80     CAFB  	jreq	L10
+ 1391 00007B90     C980  	janc	K9
+      00007BA0 00006F60' 
+ 1392 00007BC0           K10:
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   33
+
+ 1393 00007BC0     4120  	add	A9,A0
+ 1394 00007BD0     43B6  	addc	B13,B6
+ 1395 00007BE0     4518  	sub	B8,B8
+ 1396 00007BF0     46F8  	subb	B7,B8
+ 1397 00007C00     4857  	cmp	B2,B7
+ 1398 00007C10     5110  	and	B8,B0
+ 1399 00007C20     533B  	andn	B9,B11
+ 1400 00007C30     558A  	or	A12,A10
+ 1401 00007C40     563B  	xor	B1,B11
+ 1402 00007C50     5811  	divs	B0,B1
+ 1403 00007C60     5BA0  	divu	A13,A0
+ 1404 00007C70     5C51  	mpys	B2,B1
+ 1405 00007C80     5E35  	mpyu	B1,B5
+ 1406 00007C90     610B  	sla	A8,A11
+ 1407 00007CA0     6223  	sll	A1,A3
+ 1408 00007CB0     64D6  	sra	B6,B6
+ 1409 00007CC0     6624  	srl	A1,A4
+ 1410 00007CD0     6885  	rl	A4,A5
+ 1411 00007CE0     6AC2  	lmo	A6,A2
+ 1412 00007CF0     6CBD  	mods	B5,B13
+ 1413 00007D00     6F7C  	modu	B11,B12
+ 1414 00007D10     E1EE  	addxy	SP,A14
+ 1415 00007D20     E3D0  	subxy	B14,B0
+ 1416 00007D30     E544  	cmpxy	A10,A4
+ 1417 00007D40     E71B  	cpw	B8,B11
+ 1418 00007D50     E8F1  	cvxyl	B7,B1
+ 1419 00007D60     ED95  	movx	B12,B5
+ 1420 00007D70     EE1C  	movy	B0,B12
+ 1421 00007D80     F6BC  	drav	B5,B12
+ 1422 00007D90     4B13  	btst	B8,B3
+ 1423 00007DA0     4D09  	move	A8,A9
+ 1424 00007DB0     038D  	abs	A13
+ 1425 00007DC0     03AC  	neg	A12
+ 1426 00007DD0     03CF  	negb	SP
+ 1427 00007DE0     03E2  	not	A2
+ 1428 00007DF0     0127  	exgpc	A7
+ 1429 00007E00     015D  	getpc	B13
+ 1430 00007E10     017C  	jump	B12
+ 1431 00007E20     0187  	getst	A7
+ 1432 00007E30     01BD  	putst	B13
+ 1433 00007E40     0932  	call	B2
+ 1434 00007E50     0300  	nop
+ 1435 00007E60     578C  	clr	A12
+ 1436 00007E70     1025  	inc	A5
+ 1437 00007E80     1434  	dec	B4
+ 1438 00007E90     0300  	nop
+ 1439 00007EA0     0320  	clrc
+ 1440 00007EB0     0DE0  	setc
+ 1441 00007EC0     0360  	dint
+ 1442 00007ED0     0D60  	eint
+ 1443 00007EE0     01C0  	popst
+ 1444 00007EF0     01E0  	pushst
+ 1445 00007F00     0940  	reti
+ 1446 00007F10     0100  	emu
+ 1447 00007F20     116B  	addk	11,A11
+ 1448 00007F30     1727  	subk	25,A7
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   34
+
+ 1449 00007F40     1A2F  	movk	17,SP
+ 1450 00007F50     1C39  	btst	30,B9
+ 1451 00007F60     2105  	sla	8,A5
+ 1452 00007F70     24C3  	sll	6,A3
+ 1453 00007F80     2B0C  	sra	8,A12
+ 1454 00007F90     2DB9  	srl	19,B9
+ 1455 00007FA0     332A  	rl	25,A10
+ 1456 00007FB0     0B18  	addi	-5115,B8
+      00007FC0     EC05  
+ 1457 00007FD0     0B20  	addi	0D8AAAA9Fh,A0,l
+      00007FE0 D8AAAA9F  
+ 1458 00008000     0B47  	cmpi	-5974,A7
+      00008010     1755  
+ 1459 00008020     0B70  	cmpi	044A16D86h,B0,l
+      00008030 BB5E9279  
+ 1460 00008050     09D5  	movi	-21667,B5
+      00008060     AB5D  
+ 1461 00008070     09FE  	movi	07D524CD8h,B14,l
+      00008080 7D524CD8  
+ 1462 000080A0     0BE0  	subi	-8934,A0
+      000080B0     22E5  
+ 1463 000080C0     0D08  	subi	0599DD4E3h,A8,l
+      000080D0 A6622B1C  
+ 1464 000080F0     0B9A  	andi	09B439B8Bh,B10
+      00008100 64BC6474  
+ 1465 00008120     0B8A  	andni	04A36D5A0h,A10
+      00008130 4A36D5A0  
+ 1466 00008150     0BB2  	ori	03DEC44C7h,B2
+      00008160 3DEC44C7  
+ 1467 00008180     0BD1  	xori	0F2A31EDAh,B1
+      00008190 F2A31EDA  
+ 1468 000081B0     0716  	sext	B6,1
+ 1469 000081C0     0725  	zext	A5,1
+ 1470 000081D0     D71D  	exgf	B13,1
+ 1471 000081E0     0566  	setf	6,1,0
+ 1472 000081F0     0960  	rets	0
+ 1473 00008200     090F  	trap	15
+ 1474 00008210     0981  	mmtm	A1,A2
+      00008220     2000  
+ 1475 00008230     09A2  	mmfm	A2,A2
+      00008240     0004  
+ 1476 00008250     81FC  	move	SP,*B12,0
+ 1477 00008260     85FC  	move	*SP,B12,0
+ 1478 00008270     89FC  	move	*SP,*B12,0
+ 1479 00008280     91FC  	move	SP,*B12+,0
+ 1480 00008290     95FC  	move	*SP+,B12,0
+ 1481 000082A0     99FC  	move	*SP+,*B12+,0
+ 1482 000082B0     A1FC  	move	SP,-*B12,0
+ 1483 000082C0     A5FC  	move	-*SP,B12,0
+ 1484 000082D0     A9FC  	move	-*SP,-*B12,0
+ 1485 000082E0     B1FC  	move	SP,*B12(470),0
+      000082F0     01D6  
+ 1486 00008300     B5FC  	move	*SP(470),B12,0
+      00008310     01D6  
+ 1487 00008320     B9FC  	move	*SP(470),*B12(21244),0
+      00008330     01D6  
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   35
+
+      00008340     52FC  
+ 1488 00008350     D1FC  	move	*SP(470),*B12+,0
+      00008360     01D6  
+ 1489 00008370     058F  	move	SP,@0D6BE0A05h,0
+      00008380 D6BE0A05  
+ 1490 000083A0     05BC  	move	@03A640BEBh,B12,0
+      000083B0 3A640BEB  
+ 1491 000083D0     05C0  	move	@088B53863h,@074F3C1EEh,0
+      000083E0 88B53863  
+      00008400 74F3C1EE  
+ 1492 00008420     D41C  	move	@070CFABE3h,*B12+,0
+      00008430 70CFABE3  
+ 1493 00008450     4F36  	move	B9,A6
+ 1494 00008460     8DFC  	movb	SP,*B12
+ 1495 00008470     8FFC  	movb	*SP,B12
+ 1496 00008480     9DFC  	movb	*SP,*B12
+ 1497 00008490     ADFC  	movb	SP,*B12(470)
+      000084A0     01D6  
+ 1498 000084B0     AFFC  	movb	*SP(470),B12
+      000084C0     01D6  
+ 1499 000084D0     BDFC  	movb	*SP(470),*B12(21244)
+      000084E0     01D6  
+      000084F0     52FC  
+ 1500 00008500     05EF  	movb	SP,@05D24BDF7h
+      00008510 5D24BDF7  
+ 1501 00008530     07FC  	movb	@0E6F8BB45h,B12
+      00008540 E6F8BB45  
+ 1502 00008560     0340  	movb	@0463D13F8h,@0DDCB229Fh
+      00008570 463D13F8  
+      00008590 DDCB229F  
+ 1503 000085B0     F9FC  	pixt	SP,*B12
+ 1504 000085C0     F1FC  	pixt	SP,*B12.xy
+ 1505 000085D0     FBFC  	pixt	*SP,B12
+ 1506 000085E0     F3FC  	pixt	*SP.xy,B12
+ 1507 000085F0     FDFC  	pixt	*SP,*B12
+ 1508 00008600     F5FC  	pixt	*SP.xy,*B12.xy
+ 1509 00008610     0F00  	pixblt	L,L
+ 1510 00008620     0F20  	pixblt	L,XY
+ 1511 00008630     0F40  	pixblt	XY,L
+ 1512 00008640     0F60  	pixblt	XY,XY
+ 1513 00008650     0F80  	pixblt	B,L
+ 1514 00008660     0FA0  	pixblt	B,XY
+ 1515 00008670     0FC0  	fill	L
+ 1516 00008680     0FE0  	fill	XY
+ 1517 00008690     DF9A  	line	1
+ 1518 000086A0     C780  	jagt	L11
+      000086B0 000087A0' 
+ 1519 000086D0     C380  	jahi	L11
+      000086E0 000087A0' 
+ 1520 00008700     0DAE  	dsjeq	A14,L11
+      00008710     0008  
+ 1521 00008720     0DD2  	dsjne	B2,L11
+      00008730     0006  
+ 1522 00008740     38AF  	dsjs	SP,L11
+ 1523 00008750     0D3F  	callr	L11
+      00008760     0003  
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   36
+
+ 1524 00008770     0D5F  	calla	L11
+      00008780 000087A0' 
+ 1525 000087A0           L11:
+ 1526 000087A0     3C2F  	dsjs	SP,L11
+ 1527 000087B0     3C5D  	dsj	B13,L11
+ 1528 000087C0     0D88  	dsj	A8,K10
+      000087D0     FF3E  
+ 1529 000087E0     C1FB  	jrp	L11
+ 1530 000087F0     CC80  	jav	K10
+      00008800 00007BC0' 
+ 1531 00008820           K11:
+ 1532 00008820     4015  	add	B0,B5
+ 1533 00008830     4313  	addc	B8,B3
+ 1534 00008840     45AB  	sub	A13,A11
+ 1535 00008850     4717  	subb	B8,B7
+ 1536 00008860     4950  	cmp	B10,B0
+ 1537 00008870     5011  	and	B0,B1
+ 1538 00008880     5376  	andn	B11,B6
+ 1539 00008890     54A3  	or	A5,A3
+ 1540 000088A0     56EB  	xor	A7,A11
+ 1541 000088B0     5985  	divs	A12,A5
+ 1542 000088C0     5B60  	divu	A11,A0
+ 1543 000088D0     5C8C  	mpys	A4,A12
+ 1544 000088E0     5E15  	mpyu	B0,B5
+ 1545 000088F0     600F  	sla	A0,SP
+ 1546 00008900     63A7  	sll	A13,A7
+ 1547 00008910     64E5  	sra	A7,A5
+ 1548 00008920     66E2  	srl	A7,A2
+ 1549 00008930     6901  	rl	A8,A1
+ 1550 00008940     6A73  	lmo	B3,B3
+ 1551 00008950     6C1D  	mods	B0,B13
+ 1552 00008960     6E7C  	modu	B3,B12
+ 1553 00008970     E05C  	addxy	B2,B12
+ 1554 00008980     E20A  	subxy	A0,A10
+ 1555 00008990     E468  	cmpxy	A3,A8
+ 1556 000089A0     E65D  	cpw	B2,B13
+ 1557 000089B0     E9BA  	cvxyl	B13,B10
+ 1558 000089C0     EC05  	movx	A0,A5
+ 1559 000089D0     EE8A  	movy	A4,A10
+ 1560 000089E0     F75C  	drav	B10,B12
+ 1561 000089F0     4BB3  	btst	B13,B3
+ 1562 00008A00     4C6E  	move	A3,A14
+ 1563 00008A10     0384  	abs	A4
+ 1564 00008A20     03AC  	neg	A12
+ 1565 00008A30     03CF  	negb	SP
+ 1566 00008A40     03EF  	not	SP
+ 1567 00008A50     0121  	exgpc	A1
+ 1568 00008A60     0152  	getpc	B2
+ 1569 00008A70     0161  	jump	A1
+ 1570 00008A80     019C  	getst	B12
+ 1571 00008A90     01BE  	putst	B14
+ 1572 00008AA0     092B  	call	A11
+ 1573 00008AB0     0300  	nop
+ 1574 00008AC0     5718  	clr	B8
+ 1575 00008AD0     1027  	inc	A7
+ 1576 00008AE0     1435  	dec	B5
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   37
+
+ 1577 00008AF0     0300  	nop
+ 1578 00008B00     0320  	clrc
+ 1579 00008B10     0DE0  	setc
+ 1580 00008B20     0360  	dint
+ 1581 00008B30     0D60  	eint
+ 1582 00008B40     01C0  	popst
+ 1583 00008B50     01E0  	pushst
+ 1584 00008B60     0940  	reti
+ 1585 00008B70     0100  	emu
+ 1586 00008B80     1251  	addk	18,B1
+ 1587 00008B90     148A  	subk	4,A10
+ 1588 00008BA0     19DB  	movk	14,B11
+ 1589 00008BB0     1F85  	btst	3,A5
+ 1590 00008BC0     207D  	sla	3,B13
+ 1591 00008BD0     25D3  	sll	14,B3
+ 1592 00008BE0     2AAA  	sra	11,A10
+ 1593 00008BF0     2CDC  	srl	26,B12
+ 1594 00008C00     32FB  	rl	23,B11
+ 1595 00008C10     0B10  	addi	16681,B0
+      00008C20     4129  
+ 1596 00008C30     0B28  	addi	0252CE0B2h,A8,l
+      00008C40 252CE0B2  
+ 1597 00008C60     0B59  	cmpi	1763,B9
+      00008C70     F91C  
+ 1598 00008C80     0B6E  	cmpi	06D7985DDh,A14,l
+      00008C90 92867A22  
+ 1599 00008CB0     09C0  	movi	4332,A0
+      00008CC0     10EC  
+ 1600 00008CD0     09E3  	movi	0AFABC5C2h,A3,l
+      00008CE0 AFABC5C2  
+ 1601 00008D00     0BE0  	subi	-28743,A0
+      00008D10     7046  
+ 1602 00008D20     0D02  	subi	0BD7BD4C0h,A2,l
+      00008D30 42842B3F  
+ 1603 00008D50     0B86  	andi	039AD1CA0h,A6
+      00008D60 C652E35F  
+ 1604 00008D80     0B9E  	andni	041240979h,B14
+      00008D90 41240979  
+ 1605 00008DB0     0BBB  	ori	079D73079h,B11
+      00008DC0 79D73079  
+ 1606 00008DE0     0BC4  	xori	02F3F33D7h,A4
+      00008DF0 2F3F33D7  
+ 1607 00008E10     0710  	sext	B0,1
+ 1608 00008E20     052F  	zext	SP,0
+ 1609 00008E30     D50E  	exgf	A14,0
+ 1610 00008E40     075E  	setf	30,0,1
+ 1611 00008E50     0967  	rets	7
+ 1612 00008E60     091D  	trap	29
+ 1613 00008E70     0998  	mmtm	B8,B0,B12
+      00008E80     8008  
+ 1614 00008E90     09BA  	mmfm	B10,B0,B12
+      00008EA0     1001  
+ 1615 00008EB0     836D  	move	A11,*A13,1
+ 1616 00008EC0     876D  	move	*A11,A13,1
+ 1617 00008ED0     8B6D  	move	*A11,*A13,1
+ 1618 00008EE0     936D  	move	A11,*A13+,1
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   38
+
+ 1619 00008EF0     976D  	move	*A11+,A13,1
+ 1620 00008F00     9B6D  	move	*A11+,*A13+,1
+ 1621 00008F10     A36D  	move	A11,-*A13,1
+ 1622 00008F20     A76D  	move	-*A11,A13,1
+ 1623 00008F30     AB6D  	move	-*A11,-*A13,1
+ 1624 00008F40     B36D  	move	A11,*A13(-11038),1
+      00008F50     D4E2  
+ 1625 00008F60     B76D  	move	*A11(-11038),A13,1
+      00008F70     D4E2  
+ 1626 00008F80     BB6D  	move	*A11(-11038),*A13(4597),1
+      00008F90     D4E2  
+      00008FA0     11F5  
+ 1627 00008FB0     D36D  	move	*A11(-11038),*A13+,1
+      00008FC0     D4E2  
+ 1628 00008FD0     078B  	move	A11,@091C9B1B5h,1
+      00008FE0 91C9B1B5  
+ 1629 00009000     07AD  	move	@024094FE0h,A13,1
+      00009010 24094FE0  
+ 1630 00009030     07C0  	move	@0FDCCC418h,@0DD4ADC11h,1
+      00009040 FDCCC418  
+      00009060 DD4ADC11  
+ 1631 00009080     D60D  	move	@0B34BE1DCh,*A13+,1
+      00009090 B34BE1DC  
+ 1632 000090B0     4F24  	move	A9,B4
+ 1633 000090C0     8D6D  	movb	A11,*A13
+ 1634 000090D0     8F6D  	movb	*A11,A13
+ 1635 000090E0     9D6D  	movb	*A11,*A13
+ 1636 000090F0     AD6D  	movb	A11,*A13(-11038)
+      00009100     D4E2  
+ 1637 00009110     AF6D  	movb	*A11(-11038),A13
+      00009120     D4E2  
+ 1638 00009130     BD6D  	movb	*A11(-11038),*A13(4597)
+      00009140     D4E2  
+      00009150     11F5  
+ 1639 00009160     05EB  	movb	A11,@0D1EB842Eh
+      00009170 D1EB842E  
+ 1640 00009190     07ED  	movb	@0E703A764h,A13
+      000091A0 E703A764  
+ 1641 000091C0     0340  	movb	@05355704Bh,@019CECE9Eh
+      000091D0 5355704B  
+      000091F0 19CECE9E  
+ 1642 00009210     F96D  	pixt	A11,*A13
+ 1643 00009220     F16D  	pixt	A11,*A13.xy
+ 1644 00009230     FB6D  	pixt	*A11,A13
+ 1645 00009240     F36D  	pixt	*A11.xy,A13
+ 1646 00009250     FD6D  	pixt	*A11,*A13
+ 1647 00009260     F56D  	pixt	*A11.xy,*A13.xy
+ 1648 00009270     0F00  	pixblt	L,L
+ 1649 00009280     0F20  	pixblt	L,XY
+ 1650 00009290     0F40  	pixblt	XY,L
+ 1651 000092A0     0F60  	pixblt	XY,XY
+ 1652 000092B0     0F80  	pixblt	B,L
+ 1653 000092C0     0FA0  	pixblt	B,XY
+ 1654 000092D0     0FC0  	fill	L
+ 1655 000092E0     0FE0  	fill	XY
+ 1656 000092F0     DF9A  	line	1
+ GSP COFF Assembler,  Version 1.04, 86.200          Sun Oct 25 
+ (c) Copyright 1985, 1986, Texas Instruments Inc.
+                                                                     PAGE   39
+
+ 1657 00009300     CD80  	janv	L12
+      00009310 00009400' 
+ 1658 00009330     C480  	jalt	L12
+      00009340 00009400' 
+ 1659 00009360     0DB7  	dsjeq	B7,L12
+      00009370     0008  
+ 1660 00009380     0DC2  	dsjne	A2,L12
+      00009390     0006  
+ 1661 000093A0     38B7  	dsjs	B7,L12
+ 1662 000093B0     0D3F  	callr	L12
+      000093C0     0003  
+ 1663 000093D0     0D5F  	calla	L12
+      000093E0 00009400' 
+ 1664 00009400           L12:
+ 1665 00009400     3C21  	dsjs	A1,L12
+ 1666 00009410     3C49  	dsj	A9,L12
+ 1667 00009420     0D85  	dsj	A5,K11
+      00009430     FF3E  
+ 1668 00009440     C9FB  	jrnb	L12
+ 1669 00009450     C580  	jage	K11
+      00009460 00008820' 
+
+ No Errors,  No Warnings

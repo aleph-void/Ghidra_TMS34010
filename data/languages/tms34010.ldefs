@@ -11,5 +11,6 @@
               id="tms34010:LE:32:default">
         <description>Texas Instruments TMS34010 Graphics System Processor (byte address = bit address / 8)</description>
         <compiler name="default" spec="tms34010.cspec" id="default"/>
+        <compiler name="TI C compiler (FS1 = 32 at entry)" spec="tms34010_tic.cspec" id="tic"/>
     </language>
 </language_definitions>
