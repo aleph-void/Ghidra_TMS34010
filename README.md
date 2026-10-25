@@ -6,6 +6,9 @@
 > follows; the sections marked *Ghidra-Rare* were added.
 
 # Ghidra_TMS34010
+
+[![Sponsor Aleph Void](https://img.shields.io/badge/Sponsor-Aleph%20Void-EA4AAA?logo=githubsponsors&logoColor=white)](https://github.com/sponsors/aleph-void)
+
 A processor module of the Texas Instruments TMS34010 processor for Ghidra.
 
 ~~Current status is incomplete, some semantics are still needed to be finished as well as other fixes.~~
